@@ -2,7 +2,7 @@
 
 `wordtl` is a `tool` that allows `anyone` to `help them solve a wordle`.
 
-Invoke `wordtl` with possibilites to help you find a list of words that meet you criteria. For example:
+Invoke `wordtl` with possibilites to help you find a list of words that meet your criteria. For example:
 - What is a list of 5 letter words that have "T" as the first letter and have "R" that is not in the second letter?
 
 ## Prerequisites
@@ -44,9 +44,8 @@ wordtl.exe
 ### Usage:
 ```
 Usage of ./wordtl:
-  -a	Auto Shoot Mode (default - Manual Shot)
-  -d float
-    	Detonation Radius (meters) (default 20)
+  -l	int
+    	Word length in number of letters (default 6)
   -e	English Units (default - Metric)
   -m	Real-time Target Movement (default - Pause Target During Shot Decision)
   -p	Print Shot Profile
