@@ -3,7 +3,10 @@
 `wordtl` is a `tool` that allows `anyone` to `help them solve a wordle`.
 
 Invoke `wordtl` with possibilites to help you find a list of words that meet your criteria. For example:
-- What is a list of 5 letter words that have "T" as the first letter and have "R" that is not in the second letter?
+- What is a list of 5 letter words that have:
+  - "T" as the first letter, and
+  - "R" somewhere else,
+  - "IES" are excluded.
 
 ## Prerequisites
 
@@ -45,17 +48,17 @@ wordtl.exe
 ```
 Usage of ./wordtl:
   -p string
-    	Pattern to Match: Known letters will be in the position that they appear, a wildecard placeholder '-' must be letters specified by -w flag or can be any other letter.
+        Pattern to Match: Known letters will be in the position that they appear. Wildecard placeholders '-' 1) must include all letters specified by the -w flag and 2) can be any other letter that is not excluded by the -x flag. Example value of 't----' would lookup words with a 't' in the beginning of a 5 letter word.
   -w string
-    	Wildcard Letters: letters that can appear in any position where there is a wildecard placeholder '-'
+        Wildcard Letters: Letters that must appear in any position where there is a wildecard placeholder '-'. Example value of 'r' means that there must be at least 1 'r' in any place where there is a '-' in the -p flag.
   -x string
-    	Excluded Letters: Letters that cannot appear in the word.
+        Excluded Letters: Letters that cannot appear in the word. Example value of 'ies' means that 'i', 'e', or 's' cannot appear anywhere in the word.
 ```
 ## Building/Testing wordtl
 `wordtl` is developed in Golang. You will need to download Golang from https://golang.org/doc/install. You can install additional developer tools such as an IDE if you would like, but it is not required.
 
 ### Golang Version
-This code was compiled with `go version go1.15.7 darwin/amd64`. Run `go version` to see what you are using.
+This code was compiled with `go version go1.16.2 darwin/amd64`. Run `go version` to see what you are using.
 
 ### Compile the Code and Build Executables
 
