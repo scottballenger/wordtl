@@ -44,11 +44,12 @@ wordtl.exe
 ### Usage:
 ```
 Usage of ./wordtl:
-  -l	int
-    	Word length in number of letters (default 6)
-  -e	English Units (default - Metric)
-  -m	Real-time Target Movement (default - Pause Target During Shot Decision)
-  -p	Print Shot Profile
+  -p string
+    	Pattern to Match: Known letters will be in the position that they appear, a wildecard placeholder '-' must be letters specified by -w flag or can be any other letter.
+  -w string
+    	Wildcard Letters: letters that can appear in any position where there is a wildecard placeholder '-'
+  -x string
+    	Excluded Letters: Letters that cannot appear in the word.
 ```
 ## Building/Testing wordtl
 `wordtl` is developed in Golang. You will need to download Golang from https://golang.org/doc/install. You can install additional developer tools such as an IDE if you would like, but it is not required.
