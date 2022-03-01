@@ -108,6 +108,8 @@ You specified to many required items and nothing matched your query. Simply remo
 ## Building/Testing wordtl
 `wordtl` is developed in Golang. You will need to download Golang from https://golang.org/doc/install. You can install additional developer tools such as an IDE if you would like, but it is not required.
 
+`TLDR;` you can run `build-all` to build all executables and run unit tests.
+
 ### Golang Version
 This code was compiled with `go version go1.16.2 darwin/amd64`. Run `go version` to see what you are using.
 
