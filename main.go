@@ -1,24 +1,21 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"sort"
 	"strings"
+	"wordtl/words"
 )
 
 const (
-	WildcardChar    = "-"
 	WildcardFlag    = "w"
 	ExcludedFlag    = "x"
 	WordPatternFlag = "p"
 	FileFlag        = "f"
 	StaisticsFlag   = "s"
-	MaxLetters      = 9
 )
 
 var (
@@ -26,18 +23,18 @@ var (
 	WordPattern     = ""          // Pattern to match, length is inferred from string length.
 	WildcardLetters = ""          // Letters that can appear in any position where there is a wildecard placeholder.
 	ExcludedLetters = ""          // Letters that cannot appear in the position where they are specified.
-	NoParkDisSpace  [MaxLetters]string
+	NoParkDisSpace  [words.MaxLetters]string
 	PrintStatistics = false
 )
 
 func parseFlags() {
-	wordPatternHelp := "Pattern to Match: Known letters will be in the position that they appear. Wildecard placeholders '" + WildcardChar + "' 1) must include all letters specified by the -" + WildcardFlag + " flag and 2) can be any other letter that is not excluded by the -" + ExcludedFlag + " flag. Example value of 't" + strings.Repeat(WildcardChar, 4) + "' would lookup words with a 't' in the beginning of a 5 letter word."
+	wordPatternHelp := "Pattern to Match: Known letters will be in the position that they appear. Wildecard placeholders '" + words.WildcardChar + "' 1) must include all letters specified by the -" + WildcardFlag + " flag and 2) can be any other letter that is not excluded by the -" + ExcludedFlag + " flag. Example value of 't" + strings.Repeat(words.WildcardChar, 4) + "' would lookup words with a 't' in the beginning of a 5 letter word."
 	flag.StringVar(&WordPattern, WordPatternFlag, WordPattern, wordPatternHelp)
-	wildcardHelp := "Wildcard Letters: Letters that must appear in any position where there is a wildecard placeholder '" + WildcardChar + "'. Example value of 'r' means that there must be at least 1 'r' in any place where there is a '" + WildcardChar + "' in the -" + WordPatternFlag + " flag."
+	wildcardHelp := "Wildcard Letters: Letters that must appear in any position where there is a wildecard placeholder '" + words.WildcardChar + "'. Example value of 'r' means that there must be at least 1 'r' in any place where there is a '" + words.WildcardChar + "' in the -" + WordPatternFlag + " flag."
 	flag.StringVar(&WildcardLetters, WildcardFlag, WildcardLetters, wildcardHelp)
 	flag.StringVar(&ExcludedLetters, ExcludedFlag, ExcludedLetters, "Excluded Letters: Letters that cannot appear in the word. Example value of 'ies' means that 'i', 'e', or 's' cannot appear anywhere in the word.")
 	flag.StringVar(&WordFile, FileFlag, WordFile, "Word File: Name/Path of ASCII text file containing one word per line.")
-	for disSpace := 0; disSpace < MaxLetters; disSpace++ {
+	for disSpace := 0; disSpace < words.MaxLetters; disSpace++ {
 		noParkDisSpaceHelp := "Letters that don't belong in this position: Letters that appear in the word, but not in postion #" + fmt.Sprintf("%d", disSpace+1) + " Example value of 'ies' means that 'i', 'e', or 's' cannot appear in position #" + fmt.Sprintf("%d", disSpace+1) + "."
 		flag.StringVar(&NoParkDisSpace[disSpace], fmt.Sprintf("%d", disSpace+1), NoParkDisSpace[disSpace], noParkDisSpaceHelp)
 	}
@@ -57,7 +54,7 @@ func initialize() {
 	ExcludedLetters = strings.ToLower(ExcludedLetters)
 	fmt.Printf("Excluded letters: '%s'\n", ExcludedLetters)
 
-	for disSpace := 0; disSpace < MaxLetters; disSpace++ {
+	for disSpace := 0; disSpace < words.MaxLetters; disSpace++ {
 		if len(NoParkDisSpace[disSpace]) > 0 {
 			NoParkDisSpace[disSpace] = strings.ToLower(NoParkDisSpace[disSpace])
 			fmt.Printf("Can't use letters in postion #%d: '%s'\n", disSpace+1, NoParkDisSpace[disSpace])
@@ -74,75 +71,6 @@ func initialize() {
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
-}
-
-func wordMatch(word string,
-	wordPattern string,
-	excludedLetters string,
-	wildcardLetters string,
-	noParkDisSpace [MaxLetters]string) bool {
-
-	// filter length.
-	if len(word) != len(wordPattern) {
-		return false
-	}
-
-	// filter excluded letters.
-	for _, letter := range excludedLetters {
-		if strings.Contains(word, string(letter)) {
-			return false
-		}
-	}
-
-	// filter words that don't contain WildcardChar letters.
-	for _, letter := range wildcardLetters {
-		if !strings.Contains(word, string(letter)) {
-			return false
-		}
-	}
-
-	// filter for positional pattern match.
-	for i, letter := range word {
-		switch string(wordPattern[i : i+1]) {
-		case string(letter):
-			continue
-		case WildcardChar:
-			if len(noParkDisSpace[i]) > 0 {
-				// Remove letters that can't be in a specific position.
-				if strings.Contains(noParkDisSpace[i], string(letter)) {
-					return false
-				}
-			}
-			continue
-		default:
-			return false
-		}
-	}
-	return true
-}
-
-func getMatchingWords(
-	wordFileHandle io.Reader,
-	wordPattern string,
-	excludedLetters string,
-	wildcardLetters string,
-	noParkDisSpace [MaxLetters]string) []string {
-
-	var matchingWords []string
-
-	scanner := bufio.NewScanner(wordFileHandle)
-	for scanner.Scan() {
-		word := strings.ToLower(scanner.Text())
-		if wordMatch(word, wordPattern, excludedLetters, wildcardLetters, noParkDisSpace) {
-			matchingWords = append(matchingWords, word)
-
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
-	}
-	return matchingWords
 }
 
 func printMatchingWords(matchingWords []string) {
@@ -237,7 +165,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	matchingWords := getMatchingWords(f, WordPattern, ExcludedLetters, WildcardLetters, NoParkDisSpace)
+	matchingWords := words.GetMatchingWords(f, WordPattern, ExcludedLetters, WildcardLetters, NoParkDisSpace)
 	f.Close()
 
 	printMatchingWords(matchingWords)

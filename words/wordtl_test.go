@@ -1,4 +1,4 @@
-package main
+package words
 
 import (
 	"io"
@@ -58,7 +58,7 @@ func Test_wordMatch(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := wordMatch(tt.args.word, tt.args.wordPattern, tt.args.excludedLetters, tt.args.wildcardLetters, tt.args.noParkDisSpace); got != tt.want {
+			if got := WordMatch(tt.args.word, tt.args.wordPattern, tt.args.excludedLetters, tt.args.wildcardLetters, tt.args.noParkDisSpace); got != tt.want {
 				t.Errorf("wordMatch() = %v, want %v", got, tt.want)
 			}
 		})
@@ -106,7 +106,7 @@ func Test_getMatchingWords(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := getMatchingWords(tt.args.wordFileHandle, tt.args.wordPattern, tt.args.excludedLetters, tt.args.wildcardLetters, tt.args.noParkDisSpace); strings.TrimSpace(strings.Join(got, "")) != strings.TrimSpace(strings.Join(tt.want, "")) {
+			if got := GetMatchingWords(tt.args.wordFileHandle, tt.args.wordPattern, tt.args.excludedLetters, tt.args.wildcardLetters, tt.args.noParkDisSpace); strings.TrimSpace(strings.Join(got, "")) != strings.TrimSpace(strings.Join(tt.want, "")) {
 				t.Errorf("getMatchingWords() = %v, want %v", got, tt.want)
 			}
 		})
