@@ -1,7 +1,6 @@
 package words
 
 import (
-	"io"
 	"strings"
 	"testing"
 )
@@ -67,7 +66,7 @@ func Test_wordMatch(t *testing.T) {
 
 func Test_getMatchingWords(t *testing.T) {
 	type args struct {
-		wordFileHandle  io.Reader
+		words           []string
 		wordPattern     string
 		excludedLetters string
 		wildcardLetters string
@@ -80,33 +79,33 @@ func Test_getMatchingWords(t *testing.T) {
 	}{
 		{
 			name: "Empty File",
-			args: args{wordFileHandle: strings.NewReader("")},
+			args: args{words: []string{}},
 			want: []string{},
 		},
 		{
 			name: "Blank Word",
-			args: args{wordFileHandle: strings.NewReader("     "), wordPattern: "t----"},
+			args: args{words: []string{"     "}, wordPattern: "t----"},
 			want: []string{},
 		},
 		{
 			name: "Pattern Match all Letters",
-			args: args{wordFileHandle: strings.NewReader("abcde"), wordPattern: "abcde"},
+			args: args{words: []string{"abcde"}, wordPattern: "abcde"},
 			want: []string{"abcde"},
 		},
 		{
 			name: "Pattern Match multiple Words",
-			args: args{wordFileHandle: strings.NewReader("tabor\ntalar\ntardo\ntardy\ntarga\n"), wordPattern: "t----"},
+			args: args{words: []string{"tabor", "talar", "tardo", "tardy", "targa"}, wordPattern: "t----"},
 			want: []string{"tabor", "talar", "tardo", "tardy", "targa"},
 		},
 		{
 			name: "Pattern Match not all Words",
-			args: args{wordFileHandle: strings.NewReader("tabor\ntalar\ntardo\ntardy\nbarga\n"), wordPattern: "t----"},
+			args: args{words: []string{"tabor", "talar", "tardo", "tardy", "barga"}, wordPattern: "t----"},
 			want: []string{"tabor", "talar", "tardo", "tardy"},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := GetMatchingWords(tt.args.wordFileHandle, tt.args.wordPattern, tt.args.excludedLetters, tt.args.wildcardLetters, tt.args.noParkDisSpace); strings.TrimSpace(strings.Join(got, "")) != strings.TrimSpace(strings.Join(tt.want, "")) {
+			if got := GetMatchingWords(tt.args.words, tt.args.wordPattern, tt.args.excludedLetters, tt.args.wildcardLetters, tt.args.noParkDisSpace); strings.TrimSpace(strings.Join(got, "")) != strings.TrimSpace(strings.Join(tt.want, "")) {
 				t.Errorf("getMatchingWords() = %v, want %v", got, tt.want)
 			}
 		})
