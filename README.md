@@ -16,9 +16,6 @@ Not much here. You can run `wordtl` on `Windows or Mac`.
 
 If you would like to compile, test, and build the code then you will need `Golang` installed.
 
-### Word List
-You must provide a word file for `wordtl` to read. Please see "Installing wordtl" for details.
-
 ## Installing wordtl
 
 To install wordtl, follow these steps:
