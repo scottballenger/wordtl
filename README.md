@@ -8,14 +8,16 @@ Invoke `wordtl` with possibilites to help you find a list of words that meet you
   - "R" is not in postion 2,
   - "IES" are excluded.
 
+`wordtl` includes the wordle list (5 letter words) from https://www.nytimes.com/games/wordle/index.html that is stored in this repo.
+
 ## Prerequisites
 
-Not much here. You can run wordtl on `Windows or Mac`.
+Not much here. You can run `wordtl` on `Windows or Mac`.
 
 If you would like to compile, test, and build the code then you will need `Golang` installed.
 
 ### Word List
-You must provide a word file for wordtl to read. Please see "Installing wordtl" for details.
+You must provide a word file for `wordtl` to read. Please see "Installing wordtl" for details.
 
 ## Installing wordtl
 
@@ -31,9 +33,9 @@ Windows:
 ```
 copy "wordtl.exe" to your machine
 ```
-### Word List
-wordtl reads `CSW21.txt` in the same directory as wordtl (for macOS) or wordtl.exe (for Wndows) by default. It can be downloaded from https://ia903406.us.archive.org/31/items/csw21/CSW21.txt. 
-- Ensure that a word file (an ASCII text file with one word per line) is downloaded and avaiable for wordctl to read. 
+### Optional Word Lists
+Optionally, `wordtl` can read a word file (an ASCII text file with one word per line) to use as its dictionary. `CSW21.txt` is an example that could be placed in the same directory as wordtl (for macOS) or wordtl.exe (for Wndows) and then consumed with the `-f` arg. It can be downloaded from https://ia903406.us.archive.org/31/items/csw21/CSW21.txt. 
+- Ensure that a word file (an ASCII text file with one word per line) is downloaded and avaiable for wordctl to read if the `-f` arg is specified.
 - CSW21.txt is the same as CSW22.txt from https://www.dropbox.com/s/gagbzhzbe2900ua/CSW22.txt and is described by the Collins Coalition here: https://www.cocoscrabble.org/lexicon.
 
 ## Using wordtl
@@ -55,17 +57,24 @@ wordtl.exe
 ### Usage:
 ```
 Usage of ./wordtl:
+  -a	Try to guess the wordle by iterating through guesses.
+  -d int
+    	Number of days before today, when auto-guessing. (default 1)
   -f string
-        Word File: Name/Path of ASCII text file containing one word per line. (default "CSW21.txt")
+    	OPTIONAL Word File: Name/Path of ASCII text file containing one word per line. Will use the wordle list from https://www.nytimes.com/games/wordle/index.html if this flag is not specified.
+  -l int
+    	Word Length: Number of letters to match. wordle is 5 letters. (default 5)
+  -m int
+    	Max Words to Print. (default 100)
   -p string
-        Pattern to Match: Known letters will be in the position that they appear. Wildecard placeholders '-' 1) must include all letters specified by the -w flag and 2) can be any other letter that is not excluded by the -x flag. Example value of 't----' would lookup words with a 't' in the beginning of a 5 letter word.
-  -s    Print statistics of letter distribution for each letter position.
+    	Pattern to Match: Known letters will be in the position that they appear. Wildecard placeholders '-' 1) must include all letters specified by the -w flag and 2) can be any other letter that is not excluded by the -x flag. Example value of 't----' would lookup words with a 't' in the beginning of a 5 letter word.
+  -s	Print statistics of letter distribution for each letter position.
   -w string
-        Wildcard Letters: Letters that must appear in any position where there is a wildecard placeholder '-'. Example value of 'r' means that there must be at least 1 'r' in any place where there is a '-' in the -p flag.
+    	Wildcard Letters: Letters that must appear in any position where there is a wildecard placeholder '-'. Example value of 'r' means that there must be at least 1 'r' in any place where there is a '-' in the -p flag.
   -x string
-        Excluded Letters: Letters that cannot appear in the word. Example value of 'ies' means that 'i', 'e', or 's' cannot appear anywhere in the word.
+    	Excluded Letters: Letters that cannot appear in the word. Example value of 'ies' means that 'i', 'e', or 's' cannot appear anywhere in the word.
   -(1-9) string
-      	Letters that don't belong in this position (each position, 1 through 9, has their own flag): Letters that appear in the word, but not in postion #(1-9) Example value of 'ies' means that 'i', 'e', or 's' cannot appear in position #(1-9).
+      	Letters that don't belong in this position (each position, 1 through 9, has their own flag): Letters that appear in the word, but not in postion #(1-9) Example value of '-4 ies' means that 'i', 'e', or 's' cannot appear in position #4.
 ```
 ## Example
 ### Example Input
@@ -81,26 +90,35 @@ The Example input has the following output:
 ```
 Word length: 5
 Word pattern: 't----'
-Wild Card letters: 'tr'
+Wild Card letters: 'r'
 Excluded letters: 'ies'
 Can't use letters in postion #2: 'r'
+Using built-in wordle words.
+Yesterday's wordle: 'abcde'
 
-Possible matching words (37):
-tabor talar tardo tardy targa taroc tarok tarot tarry tarty tatar taxor tayra
-tharm thorn thoro thorp thraw throb throw thrum thurl tolar torah toran torch
-torot torta tuart tubar tugra tumor turbo turfy turnt tutor tyran 
+Try #1:
 
-Try these letters (17):
-a=27 o=22 h=11 u=10 y=6 n=4 b=4 l=3 m=3 w=2 d=2 c=2 g=2 f=1 k=1 x=1 p=1 
+MATCHING WORDS (10):
+tardy tarot thorn throb throw thrum torch tumor turbo tutor 
+
+Try these letters (11):
+o=8 h=5 u=4 m=2 b=2 a=2 y=1 w=1 c=1 d=1 n=1 
+
+Trying elimination letters: 'ohuabmyndwc'
+
+ELIMINATION WORDS - EXACT MATCH! - 'mohua'
 ```
 
 #### Interpreting the Output
 
-##### Possible matching words
+##### Matching Words
 This is a list of words that match the input criteria. The answer is in here!
 
 ##### Try these letters
-This is a list of letters in the `Possible matching words` in the order of their occurrances (greatest to least). In this case, One may want to try `./wordtl -p t---- -w roah -2 r` giving `torah` as the next guess to narrow down the possibilities further.
+This is a list of letters in the `MATCHING WORDS` in the order of their occurrances (greatest to least) that WERE NOT included in the search. 
+
+##### Elimination Words
+`wordtl` will try and come up with a word, or list of words, that will disambiguate the remaining words. In this case, 'mohua' was the best match (having as many elimination letters as possible) chosen from the dictionary as a good elimination word.
 
 ###### I didn't get any results?
 You specified to many required items and nothing matched your query. Simply remove some of the constraints to open the query to more results.
@@ -108,7 +126,8 @@ You specified to many required items and nothing matched your query. Simply remo
 ## Building/Testing wordtl
 `wordtl` is developed in Golang. You will need to download Golang from https://golang.org/doc/install. You can install additional developer tools such as an IDE if you would like, but it is not required.
 
-`TLDR;` you can run `build-all` to build all executables and run unit tests.
+### TLDR;
+Run `build-all` to build all executables and run unit tests.
 
 ### Golang Version
 This code was compiled with `go version go1.16.2 darwin/amd64`. Run `go version` to see what you are using.
@@ -160,13 +179,13 @@ To run the unit tests for your platform, just run the following command:
 
 ```
 cd wordtl
-go test
+go test ./...
 ```
 
 Upon execution, you should see something that ends with:
 ```
-PASS
-ok      wordtl    0.319s
+?       wordtl  [no test files]
+ok      wordtl/words    0.447s
 ```
 
 ## Contributing to wordtl

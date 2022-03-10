@@ -19,6 +19,8 @@ const (
 	FileFlag            = "f"
 	StaisticsFlag       = "s"
 	MaxWordsToPrintFlag = "m"
+	AutoGuessFlag       = "a"
+	DayOffsetFlag       = "d"
 )
 
 var (
@@ -30,26 +32,30 @@ var (
 	NoParkDisSpace  [words.MaxLetters]string
 	PrintStatistics = false
 	MaxWordsToPrint = 100
+	AutoGuess       = false
+	DayOffset       = 1
 )
 
 func parseFlags() {
-	flag.IntVar(&WordLength, WordLengthFlag, WordLength, "Word Length: Number of letters to match. Wordle is 5 letters.")
+	flag.IntVar(&WordLength, WordLengthFlag, WordLength, "Word Length: Number of letters to match. wordle is 5 letters.")
 	wordPatternHelp := "Pattern to Match: Known letters will be in the position that they appear. Wildecard placeholders '" + words.WildcardChar + "' 1) must include all letters specified by the -" + WildcardFlag + " flag and 2) can be any other letter that is not excluded by the -" + ExcludedFlag + " flag. Example value of 't" + strings.Repeat(words.WildcardChar, 4) + "' would lookup words with a 't' in the beginning of a 5 letter word."
 	flag.StringVar(&WordPattern, WordPatternFlag, WordPattern, wordPatternHelp)
 	wildcardHelp := "Wildcard Letters: Letters that must appear in any position where there is a wildecard placeholder '" + words.WildcardChar + "'. Example value of 'r' means that there must be at least 1 'r' in any place where there is a '" + words.WildcardChar + "' in the -" + WordPatternFlag + " flag."
 	flag.StringVar(&WildcardLetters, WildcardFlag, WildcardLetters, wildcardHelp)
 	flag.StringVar(&ExcludedLetters, ExcludedFlag, ExcludedLetters, "Excluded Letters: Letters that cannot appear in the word. Example value of 'ies' means that 'i', 'e', or 's' cannot appear anywhere in the word.")
-	flag.StringVar(&WordFile, FileFlag, WordFile, "Word File: Name/Path of ASCII text file containing one word per line.")
+	flag.StringVar(&WordFile, FileFlag, WordFile, "OPTIONAL Word File: Name/Path of ASCII text file containing one word per line. Will use the wordle list from https://www.nytimes.com/games/wordle/index.html if this flag is not specified.")
 	for disSpace := 0; disSpace < words.MaxLetters; disSpace++ {
-		noParkDisSpaceHelp := "Letters that don't belong in this position: Letters that appear in the word, but not in postion #" + fmt.Sprintf("%d", disSpace+1) + " Example value of 'ies' means that 'i', 'e', or 's' cannot appear in position #" + fmt.Sprintf("%d", disSpace+1) + "."
+		noParkDisSpaceHelp := "Letters that don't belong in this position: Letters that appear in the word, but not in postion #" + fmt.Sprintf("%d", disSpace+1) + " Example value of '-" + fmt.Sprintf("%d", disSpace+1) + " ies' means that 'i', 'e', or 's' cannot appear in position #" + fmt.Sprintf("%d", disSpace+1) + "."
 		flag.StringVar(&NoParkDisSpace[disSpace], fmt.Sprintf("%d", disSpace+1), NoParkDisSpace[disSpace], noParkDisSpaceHelp)
 	}
 	flag.BoolVar(&PrintStatistics, StaisticsFlag, PrintStatistics, "Print statistics of letter distribution for each letter position.")
+	flag.BoolVar(&AutoGuess, AutoGuessFlag, AutoGuess, "Try to guess the wordle by iterating through guesses.")
 	flag.IntVar(&MaxWordsToPrint, MaxWordsToPrintFlag, MaxWordsToPrint, "Max Words to Print.")
+	flag.IntVar(&DayOffset, DayOffsetFlag, DayOffset, "Number of days before today, when auto-guessing.")
 	flag.Parse()
 }
 
-func initialize() ([]string, []string) {
+func initialize() ([]string, []string, bool) {
 	parseFlags()
 
 	fmt.Printf("Word length: %d\n", WordLength)
@@ -82,9 +88,12 @@ func initialize() ([]string, []string) {
 		os.Exit(1)
 	}
 
-	if WordLength == 5 && WordFile == "" {
+	doWordle := (WordLength == words.WordleLength) && (WordFile == "")
+
+	if doWordle {
 		fmt.Println("Using built-in wordle words.")
-		return words.WordleSolutionWords, append(words.WordleSolutionWords, words.WordleSearchWords...)
+		fmt.Printf("Yesterday's wordle: '%s'\n", words.GetWordle(-1))
+		return words.WordleSolutionWords, append(words.WordleSolutionWords, words.WordleSearchWords...), true
 	} else if WordFile != "" {
 		fmt.Printf("Reading Word file: %s\n", WordFile)
 		solutionWords := []string{}
@@ -101,13 +110,13 @@ func initialize() ([]string, []string) {
 				solutionWords = append(solutionWords, word)
 			}
 		}
-		return solutionWords, solutionWords
+		return solutionWords, solutionWords, false
 	} else {
 		fmt.Println("You must specify a -f <Word File>")
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
-	return nil, nil
+	return nil, nil, false
 }
 
 func printWords(words []string, description string, maxToPrint int) {
@@ -193,23 +202,73 @@ func printWordStatistics(letterDistribution []map[string]int, wordLength int) {
 }
 
 func main() {
-	solutionWords, allWords := initialize()
+	solutionWords, allWords, doWordle := initialize()
 
-	matchingWords := words.GetMatchingWords(solutionWords, WordPattern, ExcludedLetters, WildcardLetters, NoParkDisSpace)
-	printWords(matchingWords, "MATCHING WORDS", MaxWordsToPrint)
-	remainingLetterCount, remainingLetterOrder := words.GetLetterCount(matchingWords, WordPattern, WildcardLetters)
-	remainingLetterDistribution := words.GetLetterDistribution(matchingWords, WordLength)
-	printLettersToTry(remainingLetterCount)
-	if PrintStatistics {
-		printWordStatistics(remainingLetterDistribution, WordLength)
-	}
-	if len(remainingLetterCount) > 0 {
-		eliminationWords := words.GetEliminationWords(remainingLetterOrder, allWords, WordLength, ExcludedLetters, WildcardLetters, NoParkDisSpace)
-		printWords(eliminationWords, "ELIMINATION WORDS", MaxWordsToPrint)
-		if len(eliminationWords) > 1 {
-			bestEliminationWords := words.GetBestEliminationWords(eliminationWords, WordLength, remainingLetterOrder, remainingLetterDistribution)
-			printWords(bestEliminationWords, "BEST ELIMINATION WORDS", MaxWordsToPrint)
+	for try := 1; try <= 6; try++ {
+		fmt.Printf("\nTry #%d:\n", try)
+		matchingWords := words.GetMatchingWords(solutionWords, WordPattern, ExcludedLetters, WildcardLetters, NoParkDisSpace)
+		printWords(matchingWords, "MATCHING WORDS", MaxWordsToPrint)
+		if len(matchingWords) == 1 {
+			break
+		}
+		remainingLetterCount, remainingLetterOrder := words.GetLetterCount(matchingWords, WordPattern, WildcardLetters)
+		remainingLetterDistribution := words.GetLetterDistribution(matchingWords, WordLength)
+		printLettersToTry(remainingLetterCount)
+		if PrintStatistics {
+			printWordStatistics(remainingLetterDistribution, WordLength)
+		}
+		eliminationWords := []string{}
+		bestEliminationWords := []string{}
+		if len(remainingLetterOrder) > 0 {
+			eliminationWords = words.GetEliminationWords(remainingLetterOrder, allWords, WordLength, ExcludedLetters, WildcardLetters, NoParkDisSpace)
+			printWords(eliminationWords, "ELIMINATION WORDS", MaxWordsToPrint)
+			if len(eliminationWords) > 1 {
+				bestEliminationWords = words.GetBestEliminationWords(eliminationWords, WordLength, remainingLetterOrder, remainingLetterDistribution)
+				printWords(bestEliminationWords, "BEST ELIMINATION WORDS", MaxWordsToPrint)
+			}
+		}
+
+		guess := ""
+		if len(matchingWords) == 2 {
+			guess = matchingWords[0]
+		} else if len(bestEliminationWords) > 0 {
+			guess = bestEliminationWords[0]
+		} else if len(eliminationWords) > 0 {
+			guess = eliminationWords[0]
+		} else if len(matchingWords) > 1 {
+			guess = matchingWords[0]
+		}
+		if guess != "" {
+			if AutoGuess {
+				if doWordle {
+					guessed, wordPattern, wildcardLetters, excludedLetters, noParkDisSpace := words.GuessWordle(0-DayOffset, guess, WordPattern, ExcludedLetters, WildcardLetters, NoParkDisSpace)
+					fmt.Printf("\nGuessed %s, match=%v - Next guess:\n", guess, guessed)
+					noParkDeesSpaces := ""
+					for i, disSpace := range noParkDisSpace {
+						if len(disSpace) > 0 {
+							noParkDeesSpaces += fmt.Sprintf("-%d %s ", i+1, disSpace)
+						}
+					}
+					fmt.Printf("%s -p %s  -w %s -x %s %s\n", os.Args[0], wordPattern, wildcardLetters, excludedLetters, noParkDeesSpaces)
+					if guessed {
+						break
+					}
+					WordPattern = wordPattern
+					WildcardLetters = wildcardLetters
+					ExcludedLetters = excludedLetters
+					NoParkDisSpace = noParkDisSpace
+				} else {
+					fmt.Println("wordle mode is NOT enabled!")
+					break
+				}
+			} else {
+				break
+			}
+		} else {
+			fmt.Println("Nothing to guess")
+			break
 		}
 	}
 	fmt.Println()
+
 }
