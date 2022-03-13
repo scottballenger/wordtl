@@ -55,19 +55,19 @@ wordtl.exe
 ```
 Usage of ./wordtl:
   -a	Try to guess the wordle by iterating through guesses.
-  -d int
-    	Number of days before today, when auto-guessing. (default 1)
+  -d	Print statistics of letter distribution for each letter position.
   -f string
     	OPTIONAL Word File: Name/Path of ASCII text file containing one word per line. Will use the wordle list from https://www.nytimes.com/games/wordle/index.html if this flag is not specified.
-  -l int
-    	Word Length: Number of letters to match. wordle is 5 letters. (default 5)
+  -l string
+    	Wildcard Letters: Letters that must appear in any position where there is a wildecard placeholder '-'. Example value of 'r' means that there must be at least 1 'r' in any place where there is a '-' in the -p flag.
   -m int
     	Max Words to Print. (default 100)
   -p string
-    	Pattern to Match: Known letters will be in the position that they appear. Wildecard placeholders '-' 1) must include all letters specified by the -w flag and 2) can be any other letter that is not excluded by the -x flag. Example value of 't----' would lookup words with a 't' in the beginning of a 5 letter word.
-  -s	Print statistics of letter distribution for each letter position.
-  -w string
-    	Wildcard Letters: Letters that must appear in any position where there is a wildecard placeholder '-'. Example value of 'r' means that there must be at least 1 'r' in any place where there is a '-' in the -p flag.
+    	Pattern to Match: Known letters will be in the position that they appear. Wildecard placeholders '-' 1) must include all letters specified by the -l flag and 2) can be any other letter that is not excluded by the -x flag. Example value of 't----' would lookup words with a 't' in the beginning of a 5 letter word.
+  -s int
+    	Word Size: Number of letters to match. wordle is 5 letters. (default 5)
+  -w int
+    	Number of days before today, when auto-guessing. (default 265)
   -x string
     	Excluded Letters: Letters that cannot appear in the word. Example value of 'ies' means that 'i', 'e', or 's' cannot appear anywhere in the word.
   -(1-9) string

@@ -8,6 +8,8 @@ import (
 
 const (
 	WildcardChar = "-"
+	MatchedChar  = "="
+	MissedChar   = "X"
 	MaxLetters   = 9
 )
 
@@ -43,10 +45,12 @@ func WordMatch(
 		case string(letter):
 			continue
 		case WildcardChar:
-			if len(noParkDisSpace[i]) > 0 {
-				// Remove letters that can't be in a specific position.
-				if strings.Contains(noParkDisSpace[i], string(letter)) {
-					return false
+			if i < MaxLetters {
+				if len(noParkDisSpace[i]) > 0 {
+					// Remove letters that can't be in a specific position.
+					if strings.Contains(noParkDisSpace[i], string(letter)) {
+						return false
+					}
 				}
 			}
 			continue
@@ -138,7 +142,7 @@ func GetEliminationWords(
 		numLetters = len(eliminationLetters)
 	}
 	for ; numLetters > 0; numLetters-- {
-		eliminationWords = GetMatchingWords(words, strings.Repeat(WildcardChar, wordLength), wildcardLetters, eliminationLetters[:numLetters], [MaxLetters]string{})
+		eliminationWords = GetMatchingWords(words, strings.Repeat(WildcardChar, wordLength), "", eliminationLetters[:numLetters], [MaxLetters]string{})
 		if len(eliminationWords) > 0 {
 			break
 		}
@@ -187,4 +191,68 @@ func GetBestEliminationWords(words []string, wordLength int, eliminationLetters 
 	}
 
 	return bestEliminationWords
+}
+
+func replaceAtIndex(in string, r rune, i int) string {
+	out := []rune(in)
+	out[i] = r
+	return string(out)
+}
+
+func GuessWord(word string, guess string) (bool, string) {
+	match := false
+	word = strings.ToLower(word)
+	guess = strings.ToLower(guess)
+	result := ""
+	if len(guess) == len(word) {
+		match = true
+		for i := range guess {
+			guessLetter := string(guess[i])
+			wordleLetter := string(word[i])
+			if guessLetter == wordleLetter {
+				result += MatchedChar
+			} else {
+				if strings.Contains(word, guessLetter) {
+					result += WildcardChar
+				} else {
+					result += MissedChar
+				}
+				match = false
+			}
+		}
+	}
+	return match, result
+}
+
+func TranslateGuessResults(
+	guess string,
+	results string,
+	wordPattern string,
+	excludedLetters string,
+	wildcardLetters string,
+	noParkDisSpace [MaxLetters]string) (string, string, string, [MaxLetters]string) {
+
+	if len(guess) == len(results) {
+		for i := range results {
+			guessLetter := string(guess[i])
+			switch string(results[i]) {
+			case MatchedChar:
+				wordPattern = replaceAtIndex(wordPattern, rune(guess[i]), i)
+			case WildcardChar:
+				if !strings.Contains(wildcardLetters, guessLetter) {
+					wildcardLetters += guessLetter
+				}
+				if i < MaxLetters {
+					if !strings.Contains(noParkDisSpace[i], guessLetter) {
+						noParkDisSpace[i] += guessLetter
+					}
+				}
+			case MissedChar:
+				if !strings.Contains(excludedLetters, guessLetter) {
+					excludedLetters += guessLetter
+				}
+			}
+		}
+	}
+	return wordPattern, wildcardLetters, excludedLetters, noParkDisSpace
 }
