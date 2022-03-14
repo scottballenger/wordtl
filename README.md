@@ -1,14 +1,27 @@
 # wordtl
 
-`wordtl` is a `tool` that allows `anyone` to `help them solve a wordle`.
+`wordtl` is a `tool` that allows `anyone` to `help them solve a wordle` or guess a word from a dictionary.
 
-Invoke `wordtl` with possibilites to help you find a list of words that meet your criteria. For example:
+`wordtl` includes the wordle list (5 letter words) from https://www.nytimes.com/games/wordle/index.html that is stored in this repo. Optionally, `wordtl` can read a word file (an ASCII text file with one word per line) to use as its dictionary.
+
+## Use Cases
+`wordtl` is a powerful search engine that provides answers for finding a word in a dictionary of words with the same nuber of letters.
+
+### Default Settings
+The default settings in `wordtl` is to play today's wordle. `wordtl` will prompt the user along if no paramters are specified. With no parameters, `wordtl` will give the `Next Guess` and prompt the user to make a `Geuss`.
+
+### Guess
+Invoke `wordtl` with a guess for the wordle or chosen word in the dictionary. `wordtl` will identify which letters match with solution and provide you with answers to narrow the remaining choices. This is accomplished with `-g <guess>` flag.
+
+### Next Guess
+Invoke `wordtl` with search parameters to help you find a list of words that meet your criteria. For example:
 - What is a list of 5 letter words that have:
   - "T" as the first letter, and
   - "R" is not in postion 2,
   - "IES" are excluded.
 
-`wordtl` includes the wordle list (5 letter words) from https://www.nytimes.com/games/wordle/index.html that is stored in this repo.
+### Solve
+Invoke `wordtl` to automatically makes guesses by using the `Guess` and `Next Guess` functionality to solve the wordle or chosen word in the dictionary. This is accomplished with `-a` flag.
 
 ## Prerequisites
 
@@ -54,24 +67,26 @@ wordtl.exe
 ### Usage:
 ```
 Usage of ./wordtl:
-  -a	Try to guess the wordle by iterating through guesses.
-  -d	Print statistics of letter distribution for each letter position.
+  -a  Try to guess the word by iterating through guesses.
+  -d int
+      Wordle Day: The # of the Wordle solution to use. (default Today`s wordle date)
   -f string
-    	OPTIONAL Word File: Name/Path of ASCII text file containing one word per line. Will use the wordle list from https://www.nytimes.com/games/wordle/index.html if this flag is not specified.
-  -l string
-    	Wildcard Letters: Letters that must appear in any position where there is a wildecard placeholder '-'. Example value of 'r' means that there must be at least 1 'r' in any place where there is a '-' in the -p flag.
+      OPTIONAL Word File: Name/Path of ASCII text file containing one word per line. Will use the wordle list from https://www.nytimes.com/games/wordle/index.html if this flag is not specified.
+  -g string
+      Guess: This is your guess.
+  -l int
+      Word Length: Number of letters to match. wordle is 5 letters. (default 5)
   -m int
-    	Max Words to Print. (default 100)
+      Max Words to Print. (default 100)
   -p string
-    	Pattern to Match: Known letters will be in the position that they appear. Wildecard placeholders '-' 1) must include all letters specified by the -l flag and 2) can be any other letter that is not excluded by the -x flag. Example value of 't----' would lookup words with a 't' in the beginning of a 5 letter word.
-  -s int
-    	Word Size: Number of letters to match. wordle is 5 letters. (default 5)
-  -w int
-    	Number of days before today, when auto-guessing. (default 265)
+      Pattern to Match: Known letters will be in the position that they appear. Wildecard placeholders '-' 1) must include all letters specified by the -w flag and 2) can be any other letter that is not excluded by the -x flag. Example value of 't----' would lookup words with a 't' in the beginning of a 5 letter word.
+  -s	Print statistics of letter distribution for each letter position.
+  -w string
+      Wildcard Letters: Letters that must appear in any position where there is a wildecard placeholder '-'. Example value of 'r' means that there must be at least 1 'r' in any place where there is a '-' in the -p flag.
   -x string
-    	Excluded Letters: Letters that cannot appear in the word. Example value of 'ies' means that 'i', 'e', or 's' cannot appear anywhere in the word.
+      Excluded Letters: Letters that cannot appear in the word. Example value of 'ies' means that 'i', 'e', or 's' cannot appear anywhere in the word.
   -(1-9) string
-      	Letters that don't belong in this position (each position, 1 through 9, has their own flag): Letters that appear in the word, but not in postion #(1-9) Example value of '-4 ies' means that 'i', 'e', or 's' cannot appear in position #4.
+      Letters that don't belong in this position (each position, 1 through 9, has their own flag): Letters that appear in the word, but not in postion #(1-9) Example value of '-4 ies' means that 'i', 'e', or 's' cannot appear in position #4.
 ```
 ## Example
 ### Example Input
@@ -85,25 +100,29 @@ Would be specified by `./wordtl -p t---- -w r -2 r -x ies`
 ### Example Output
 The Example input has the following output:
 ```
+Todays Wordle Day: 268
 Word length: 5
+Guess: ''
 Word pattern: 't----'
 Wild Card letters: 'r'
 Excluded letters: 'ies'
 Can't use letters in postion #2: 'r'
 Using built-in wordle words.
-Yesterday's wordle: 'abcde'
-
-Try #1:
+Yesterday's wordle: 'today'
+Solving wordle for Day: 268
 
 MATCHING WORDS (10):
 tardy tarot thorn throb throw thrum torch tumor turbo tutor 
 
 Try these letters (11):
-o=8 h=5 u=4 m=2 b=2 a=2 y=1 w=1 c=1 d=1 n=1 
+o=8 h=5 u=4 a=2 b=2 m=2 d=1 y=1 n=1 c=1 w=1 
 
-Trying elimination letters: 'ohuabmyndwc'
+Trying elimination letters: 'ohuabmndycw'
 
 ELIMINATION WORDS - EXACT MATCH! - 'mohua'
+
+Try:
+./wordtl -p t---- -w r -2 r -x ies -g mohua 
 ```
 
 #### Interpreting the Output
@@ -117,7 +136,10 @@ This is a list of letters in the `MATCHING WORDS` in the order of their occurran
 ##### Elimination Words
 `wordtl` will try and come up with a word, or list of words, that will disambiguate the remaining words. In this case, 'mohua' was the best match (having as many elimination letters as possible) chosen from the dictionary as a good elimination word.
 
-###### I didn't get any results?
+##### Next Guess
+If there are remaining possibilites, `wordtl` will suggest a next guess to try. In this example `wordtl` recommends `./wordtl -p t---- -w r -2 r -x ies -g mohua` as the next input for `wordtl`.
+
+#### I didn't get any results?
 You specified to many required items and nothing matched your query. Simply remove some of the constraints to open the query to more results.
 
 ## Building/Testing wordtl
