@@ -10,9 +10,8 @@ const NoWordle = "nada!"
 
 func GetWordle(wordleNum int) string {
 	wordle := NoWordle
-	wordleRequested := wordleNum - 1
-	if wordleRequested >= 0 && wordleRequested < len(WordleSolutionWords) {
-		wordle = WordleSolutionWords[wordleRequested]
+	if wordleNum >= 0 && wordleNum < len(WordleSolutionWords) {
+		wordle = WordleSolutionWords[wordleNum]
 	}
 	return strings.ToLower(wordle)
 }

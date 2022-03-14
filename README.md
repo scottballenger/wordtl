@@ -5,7 +5,7 @@
 `wordtl` includes the wordle list (5 letter words) from https://www.nytimes.com/games/wordle/index.html that is stored in this repo. Optionally, `wordtl` can read a word file (an ASCII text file with one word per line) to use as its dictionary.
 
 ## Use Cases
-`wordtl` is a powerful search engine that provides answers for finding a word in a dictionary of words with the same nuber of letters.
+`wordtl` is a powerful search engine that provides answers for finding a word in a dictionary with the same number of letters.
 
 ### Default Settings
 The default settings in `wordtl` is to play today's wordle. `wordtl` will prompt the user along if no paramters are specified. With no parameters, `wordtl` will give the `Next Guess` and prompt the user to make a `Geuss`.
@@ -95,7 +95,9 @@ What is a list of 5 letter words that have:
   - "R" is not in postion 2,
   - "IES" are excluded.
 
-Would be specified by `./wordtl -p t---- -w r -2 r -x ies`
+Would be specified by `./wordtl -d 248 -p t---- -w r -2 r -x ies`
+
+<b>NOTE:</b> `-d 248` is specified to give consistent output for a specific wordle. These search criteria on a different wordle will likely NOT give the desired results. 
 
 ### Example Output
 The Example input has the following output:
@@ -108,21 +110,21 @@ Wild Card letters: 'r'
 Excluded letters: 'ies'
 Can't use letters in postion #2: 'r'
 Using built-in wordle words.
-Yesterday's wordle: 'today'
-Solving wordle for Day: 268
+Yesterday's wordle: 'other'
+Solving wordle for Day: 248
 
 MATCHING WORDS (10):
 tardy tarot thorn throb throw thrum torch tumor turbo tutor 
 
 Try these letters (11):
-o=8 h=5 u=4 a=2 b=2 m=2 d=1 y=1 n=1 c=1 w=1 
+o=8 h=5 u=4 a=2 b=2 m=2 c=1 y=1 d=1 n=1 w=1 
 
-Trying elimination letters: 'ohuabmndycw'
+Trying elimination letters: 'ohuabmcydnw'
 
 ELIMINATION WORDS - EXACT MATCH! - 'mohua'
 
 Try:
-./wordtl -p t---- -w r -2 r -x ies -g mohua 
+./wordtl -d 248 -p t---- -w r -2 r -x ies -g mohua  
 ```
 
 #### Interpreting the Output
@@ -137,7 +139,7 @@ This is a list of letters in the `MATCHING WORDS` in the order of their occurran
 `wordtl` will try and come up with a word, or list of words, that will disambiguate the remaining words. In this case, 'mohua' was the best match (having as many elimination letters as possible) chosen from the dictionary as a good elimination word.
 
 ##### Next Guess
-If there are remaining possibilites, `wordtl` will suggest a next guess to try. In this example `wordtl` recommends `./wordtl -p t---- -w r -2 r -x ies -g mohua` as the next input for `wordtl`.
+If there are remaining possibilites, `wordtl` will suggest a next guess to try. In this example `wordtl` recommends `./wordtl -d 248 -p t---- -w r -2 r -x ies -g mohua` as the next input for `wordtl`.
 
 #### I didn't get any results?
 You specified to many required items and nothing matched your query. Simply remove some of the constraints to open the query to more results.

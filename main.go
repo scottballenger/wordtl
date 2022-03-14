@@ -72,7 +72,7 @@ func initialize() ([]string, []string, string, string) {
 	year, month, day := time.Now().Date()
 	todaysDate := fmt.Sprintf("%d-%02d-%02d", year, int(month), day)
 	now, _ := time.Parse(timeFormat, todaysDate)
-	WordleDay = int(now.Sub(t).Hours()/24) + 1
+	WordleDay = int(now.Sub(t).Hours() / 24)
 	TodaysDay = WordleDay
 	fmt.Printf("Todays Wordle Day: %d\n", WordleDay)
 
@@ -112,9 +112,9 @@ func initialize() ([]string, []string, string, string) {
 		os.Exit(1)
 	}
 
-	if WordleDay < 1 {
-		fmt.Printf("Wordle Day must be greater than 0. You entered %d, using 1.\n", WordleDay)
-		WordleDay = 1
+	if WordleDay < 0 {
+		fmt.Printf("Wordle Day must be positive. You entered %d, using 0.\n", WordleDay)
+		WordleDay = 0
 	}
 
 	DoWordle := (WordLength == words.WordleLength) && (WordFile == "")
