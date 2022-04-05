@@ -79,6 +79,7 @@ func initialize() ([]string, []string, string, string) {
 	parseFlags()
 
 	fmt.Printf("Word length: %d\n", WordLength)
+	Guess = strings.ToLower(Guess)
 	fmt.Printf("Guess: '%s'\n", Guess)
 	if WordPattern == "" {
 		WordPattern = strings.Repeat(words.WildcardChar, WordLength)
