@@ -24,6 +24,7 @@ const (
 	AutoGuessFlag       = "a"
 	GeussFlag           = "g"
 	WordleDayFlag       = "d"
+	BibleWordleFlag     = "b"
 )
 
 var (
@@ -40,21 +41,26 @@ var (
 	Guess           = ""
 	WordleDay       = 1
 	TodaysDay       = 1
+	WordleTitle     = "Wordle"
 	DoWordle        = true
+	BibleWordle     = false
+	DoBibleWordle   = false
 )
 
 func parseFlags() {
-	flag.IntVar(&WordLength, WordLengthFlag, WordLength, "Word Length: Number of letters to match. wordle is 5 letters.")
+	flag.IntVar(&WordLength, WordLengthFlag, WordLength, "Word Length: Number of letters to match. Wordle is 5 letters.")
 	wordPatternHelp := "Pattern to Match: Known letters will be in the position that they appear. Wildecard placeholders '" + words.WildcardChar + "' 1) must include all letters specified by the -" + WildcardFlag + " flag and 2) can be any other letter that is not excluded by the -" + ExcludedFlag + " flag. Example value of 't" + strings.Repeat(words.WildcardChar, 4) + "' would lookup words with a 't' in the beginning of a 5 letter word."
 	flag.StringVar(&WordPattern, WordPatternFlag, WordPattern, wordPatternHelp)
 	wildcardHelp := "Wildcard Letters: Letters that must appear in any position where there is a wildecard placeholder '" + words.WildcardChar + "'. Example value of 'r' means that there must be at least 1 'r' in any place where there is a '" + words.WildcardChar + "' in the -" + WordPatternFlag + " flag."
 	flag.StringVar(&WildcardLetters, WildcardFlag, WildcardLetters, wildcardHelp)
 	flag.StringVar(&ExcludedLetters, ExcludedFlag, ExcludedLetters, "Excluded Letters: Letters that cannot appear in the word. Example value of 'ies' means that 'i', 'e', or 's' cannot appear anywhere in the word.")
-	flag.StringVar(&WordFile, WordFileFlag, WordFile, "OPTIONAL Word File: Name/Path of ASCII text file containing one word per line. Will use the wordle list from https://www.nytimes.com/games/wordle/index.html if this flag is not specified.")
+	wordFileHelp := "OPTIONAL Word File: Name/Path of ASCII text file containing one word per line. Will use the Wordle list from https://www.nytimes.com/games/wordle/index.html (or https://www.thelivingwordle.com if -" + BibleWordleFlag + " is specified) if this flag is not specified."
+	flag.StringVar(&WordFile, WordFileFlag, WordFile, wordFileHelp)
 	for disSpace := 0; disSpace < words.MaxLetters; disSpace++ {
 		noParkDisSpaceHelp := "Letters that don't belong in this position: Letters that appear in the word, but not in postion #" + fmt.Sprintf("%d", disSpace+1) + " Example value of '-" + fmt.Sprintf("%d", disSpace+1) + " ies' means that 'i', 'e', or 's' cannot appear in position #" + fmt.Sprintf("%d", disSpace+1) + "."
 		flag.StringVar(&NoParkDisSpace[disSpace], fmt.Sprintf("%d", disSpace+1), NoParkDisSpace[disSpace], noParkDisSpaceHelp)
 	}
+	flag.BoolVar(&BibleWordle, BibleWordleFlag, BibleWordle, "Use Bible Wordle words from https://www.thelivingwordle.com.")
 	flag.BoolVar(&PrintStatistics, StatisticsFlag, PrintStatistics, "Print statistics of letter distribution for each letter position.")
 	flag.IntVar(&WordleDay, WordleDayFlag, WordleDay, "Wordle Day: The # of the Wordle solution to use.")
 	flag.BoolVar(&AutoGuess, AutoGuessFlag, AutoGuess, "Try to guess the word by iterating through guesses.")
@@ -66,15 +72,6 @@ func parseFlags() {
 func initialize() ([]string, []string, string, string) {
 
 	rand.Seed(time.Now().UnixNano())
-
-	timeFormat := "2006-01-02"
-	t, _ := time.Parse(timeFormat, words.StartDate)
-	year, month, day := time.Now().Date()
-	todaysDate := fmt.Sprintf("%d-%02d-%02d", year, int(month), day)
-	now, _ := time.Parse(timeFormat, todaysDate)
-	WordleDay = int(now.Sub(t).Hours() / 24)
-	TodaysDay = WordleDay
-	fmt.Printf("Todays Wordle Day: %d\n", WordleDay)
 
 	parseFlags()
 
@@ -118,18 +115,84 @@ func initialize() ([]string, []string, string, string) {
 		WordleDay = 0
 	}
 
-	DoWordle := (WordLength == words.WordleLength) && (WordFile == "")
+	DoWordle = (WordLength == words.WordleLength) && (WordFile == "")
+	DoBibleWordle = BibleWordle && DoWordle
 
 	if DoWordle {
-		fmt.Println("Using built-in wordle words.")
+		startDate := words.WordleStartDate
 		maxWordleDay := len(words.WordleSolutionWords)
+		if DoBibleWordle {
+			WordleTitle = "Bible " + WordleTitle
+			startDate = words.BibleWordleStartDate
+			maxWordleDay = len(words.BibleWordleSolutionWords)
+		}
+
+		useToday := TodaysDay == WordleDay
+		timeFormat := "2006-01-02"
+		t, _ := time.Parse(timeFormat, startDate)
+		year, month, day := time.Now().Date()
+		todaysDate := fmt.Sprintf("%d-%02d-%02d", year, int(month), day)
+		now, _ := time.Parse(timeFormat, todaysDate)
+		TodaysDay = int(now.Sub(t).Hours() / 24)
+
+		fmt.Printf("Todays %s Day: %d\n", WordleTitle, TodaysDay)
+		fmt.Printf("Using built-in %s words.\n", WordleTitle)
+
+		if useToday {
+			WordleDay = TodaysDay
+		}
+
 		if WordleDay > maxWordleDay {
-			fmt.Printf("Wordle Day must be less than %d. You entered %d, using %d.\n", maxWordleDay+1, WordleDay, maxWordleDay)
+			fmt.Printf("%s Day must be less than %d. You entered %d, using %d.\n", WordleTitle, maxWordleDay+1, WordleDay, maxWordleDay)
 			WordleDay = maxWordleDay
 		}
-		fmt.Printf("Yesterday's wordle: '%s'\n", words.GetWordle(WordleDay-1))
-		fmt.Printf("Solving wordle for Day: %d\n", WordleDay)
-		return words.WordleSolutionWords, append(words.WordleSolutionWords, words.WordleSearchWords...), words.GetWordle(WordleDay), Guess
+		wordle := ""
+		if useToday {
+			if DoBibleWordle {
+				wordle = words.GetBibleWordle(WordleDay - 1)
+			} else {
+				wordle = words.GetWordle(WordleDay - 1)
+			}
+			fmt.Printf("Yesterday's %s: '%s'\n", WordleTitle, wordle)
+		}
+		fmt.Printf("Solving %s for Day: %d\n", WordleTitle, WordleDay)
+
+		// Eliminate solution words before today.
+		solutionWords := []string{}
+		for i := WordleDay; i < maxWordleDay; i++ {
+			if DoBibleWordle {
+				wordle = words.GetBibleWordle(i)
+			} else {
+				wordle = words.GetWordle(i)
+			}
+			solutionWords = append(solutionWords, strings.ToLower(wordle))
+		}
+
+		allWords := append(words.WordleSolutionWords, words.WordleSearchWords...)
+		if DoBibleWordle {
+			allWords = append(words.BibleWordleSolutionWords, words.BibleWordleSearchWords...)
+		}
+
+		// Remove duplicates in all words.
+		updatedWords := []string{}
+		visited := make(map[string]bool)
+		for _, word := range allWords {
+			word = strings.ToLower(word)
+			if visited[word] {
+				continue
+			} else {
+				updatedWords = append(updatedWords, word)
+				visited[word] = true
+			}
+		}
+
+		if DoBibleWordle {
+			wordle = words.GetBibleWordle(WordleDay)
+		} else {
+			wordle = words.GetWordle(WordleDay)
+		}
+		return solutionWords, updatedWords, wordle, Guess
+
 	} else if WordFile != "" {
 		fmt.Printf("Reading Word file: %s\n", WordFile)
 		solutionWords := []string{}
@@ -297,6 +360,11 @@ func printNextGuess(
 		}
 	}
 
+	bibleWordleArgs := ""
+	if DoWordle && DoBibleWordle {
+		bibleWordleArgs = "-" + BibleWordleFlag + " "
+	}
+
 	wordPatternArgs := ""
 	if len(wordPattern) > 0 {
 		wordPatternArgs = "-" + WordPatternFlag + " " + wordPattern + " "
@@ -332,7 +400,7 @@ func printNextGuess(
 		wordFileArg = "-" + WordFileFlag + " " + WordFile + " "
 	}
 
-	fmt.Printf("\nTry:\n%s %s%s%s%s%s%s%s%s\n", os.Args[0], wordFileArg, wordLengthArg, dayArg, wordPatternArgs, wildcardLettersArgs, noParkDeesSpaces, excludedLettersArgs, guessArgs)
+	fmt.Printf("\nTry:\n%s %s%s%s%s%s%s%s%s%s\n", os.Args[0], bibleWordleArgs, wordFileArg, wordLengthArg, dayArg, wordPatternArgs, wildcardLettersArgs, noParkDeesSpaces, excludedLettersArgs, guessArgs)
 }
 
 func main() {
