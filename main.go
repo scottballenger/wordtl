@@ -5,11 +5,9 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"math/rand"
 	"os"
 	"sort"
 	"strings"
-	"time"
 	"wordtl/words"
 )
 
@@ -21,9 +19,8 @@ const (
 	WordFileFlag        = "f"
 	StatisticsFlag      = "s"
 	MaxWordsToPrintFlag = "m"
-	AutoGuessFlag       = "a"
 	GeussFlag           = "g"
-	WordleDayFlag       = "d"
+	AnswerFlag          = "a"
 	BibleWordleFlag     = "b"
 )
 
@@ -37,10 +34,8 @@ var (
 	NoParkDisSpace  [words.MaxLetters]string
 	PrintStatistics = false
 	MaxWordsToPrint = 100
-	AutoGuess       = false
 	Guess           = ""
-	WordleDay       = 1
-	TodaysDay       = 1
+	Answer          = ""
 	WordleTitle     = "Wordle"
 	DoWordle        = true
 	BibleWordle     = false
@@ -62,22 +57,21 @@ func parseFlags() {
 	}
 	flag.BoolVar(&BibleWordle, BibleWordleFlag, BibleWordle, "Use Bible Wordle words from https://www.thelivingwordle.com.")
 	flag.BoolVar(&PrintStatistics, StatisticsFlag, PrintStatistics, "Print statistics of letter distribution for each letter position.")
-	flag.IntVar(&WordleDay, WordleDayFlag, WordleDay, "Wordle Day: The # of the Wordle solution to use.")
-	flag.BoolVar(&AutoGuess, AutoGuessFlag, AutoGuess, "Try to guess the word by iterating through guesses.")
 	flag.StringVar(&Guess, GeussFlag, Guess, "Guess: This is your guess.")
+	answerHelp := "Answer: Enter the following characters for each letter in your guess - '" + words.MatchedChar + "' for matching characters, '" + words.WildcardChar + "' for matching characters that are in the wwrong location, '" + words.MissedChar + "' for non-matching characters."
+	flag.StringVar(&Answer, AnswerFlag, Answer, answerHelp)
 	flag.IntVar(&MaxWordsToPrint, MaxWordsToPrintFlag, MaxWordsToPrint, "Max Words to Print.")
 	flag.Parse()
 }
 
 func initialize() ([]string, []string, string, string) {
 
-	rand.Seed(time.Now().UnixNano())
-
 	parseFlags()
 
 	fmt.Printf("Word length: %d\n", WordLength)
 	Guess = strings.ToLower(Guess)
-	fmt.Printf("Guess: '%s'\n", Guess)
+	fmt.Printf("Guess:  '%s'\n", Guess)
+	fmt.Printf("Answer: '%s'\n", Answer)
 	if WordPattern == "" {
 		WordPattern = strings.Repeat(words.WildcardChar, WordLength)
 	}
@@ -110,67 +104,29 @@ func initialize() ([]string, []string, string, string) {
 		os.Exit(1)
 	}
 
-	if WordleDay < 0 {
-		fmt.Printf("Wordle Day must be positive. You entered %d, using 0.\n", WordleDay)
-		WordleDay = 0
-	}
-
 	DoWordle = (WordLength == words.WordleLength) && (WordFile == "")
 	DoBibleWordle = BibleWordle && DoWordle
 
 	if DoWordle {
-		startDate := words.WordleStartDate
-		maxWordleDay := len(words.WordleSolutionWords)
 		if DoBibleWordle {
 			WordleTitle = "Bible " + WordleTitle
-			startDate = words.BibleWordleStartDate
-			maxWordleDay = len(words.BibleWordleSolutionWords)
 		}
-
-		useToday := TodaysDay == WordleDay
-		timeFormat := "2006-01-02"
-		t, _ := time.Parse(timeFormat, startDate)
-		year, month, day := time.Now().Date()
-		todaysDate := fmt.Sprintf("%d-%02d-%02d", year, int(month), day)
-		now, _ := time.Parse(timeFormat, todaysDate)
-		TodaysDay = int(now.Sub(t).Hours() / 24)
-
-		fmt.Printf("Todays %s Day: %d\n", WordleTitle, TodaysDay)
 		fmt.Printf("Using built-in %s words.\n", WordleTitle)
 
-		if useToday {
-			WordleDay = TodaysDay
-		}
-
-		if WordleDay > maxWordleDay {
-			fmt.Printf("%s Day must be less than %d. You entered %d, using %d.\n", WordleTitle, maxWordleDay+1, WordleDay, maxWordleDay)
-			WordleDay = maxWordleDay
-		}
-		wordle := ""
-		if useToday {
-			if DoBibleWordle {
-				wordle = words.GetBibleWordle(WordleDay - 1)
-			} else {
-				wordle = words.GetWordle(WordleDay - 1)
-			}
-			fmt.Printf("Yesterday's %s: '%s'\n", WordleTitle, wordle)
-		}
-		fmt.Printf("Solving %s for Day: %d\n", WordleTitle, WordleDay)
-
-		// Eliminate solution words before today.
 		solutionWords := []string{}
-		for i := WordleDay; i < maxWordleDay; i++ {
-			if DoBibleWordle {
-				wordle = words.GetBibleWordle(i)
-			} else {
-				wordle = words.GetWordle(i)
-			}
-			solutionWords = append(solutionWords, strings.ToLower(wordle))
-		}
-
-		allWords := append(words.WordleSolutionWords, words.WordleSearchWords...)
+		allWords := []string{}
 		if DoBibleWordle {
-			allWords = append(words.BibleWordleSolutionWords, words.BibleWordleSearchWords...)
+			for _, solutionWord := range words.BibleWordleSolutionWords {
+				solutionWords = append(solutionWords, strings.ToLower(solutionWord))
+			}
+			allWords = append(allWords, words.BibleWordleSolutionWords...)
+			allWords = append(allWords, words.BibleWordleSearchWords...)
+		} else {
+			for _, solutionWord := range words.WordleSolutionWords {
+				solutionWords = append(solutionWords, strings.ToLower(solutionWord))
+			}
+			allWords = append(allWords, words.WordleSolutionWords...)
+			allWords = append(allWords, words.WordleSearchWords...)
 		}
 
 		// Remove duplicates in all words.
@@ -186,12 +142,7 @@ func initialize() ([]string, []string, string, string) {
 			}
 		}
 
-		if DoBibleWordle {
-			wordle = words.GetBibleWordle(WordleDay)
-		} else {
-			wordle = words.GetWordle(WordleDay)
-		}
-		return solutionWords, updatedWords, wordle, Guess
+		return solutionWords, updatedWords, Guess, Answer
 
 	} else if WordFile != "" {
 		fmt.Printf("Reading Word file: %s\n", WordFile)
@@ -213,11 +164,7 @@ func initialize() ([]string, []string, string, string) {
 			fmt.Printf("\nERROR: You must specify a -f <Word File> that includes %d letter words.\n\n", WordLength)
 			os.Exit(1)
 		}
-		if WordleDay == TodaysDay {
-			WordleDay = rand.Intn(len(solutionWords) - 1)
-		}
-		fmt.Printf("Solving %d letter word from %s for Day: %d\n", WordLength, WordFile, WordleDay)
-		return solutionWords, solutionWords, solutionWords[WordleDay], Guess
+		return solutionWords, solutionWords, Guess, Answer
 	} else {
 		fmt.Printf("\nERROR: You must specify a -f <Word File> for %d letter words.\n\n", WordLength)
 		flag.PrintDefaults()
@@ -385,11 +332,6 @@ func printNextGuess(
 		guessArgs = "-" + GeussFlag + " " + guess + " "
 	}
 
-	dayArg := ""
-	if WordleDay != TodaysDay {
-		dayArg = "-" + WordleDayFlag + " " + fmt.Sprintf("%d", WordleDay) + " "
-	}
-
 	wordLengthArg := ""
 	if WordLength != words.WordleLength {
 		wordLengthArg = "-" + WordLengthFlag + " " + fmt.Sprintf("%d", WordLength) + " "
@@ -400,55 +342,15 @@ func printNextGuess(
 		wordFileArg = "-" + WordFileFlag + " " + WordFile + " "
 	}
 
-	fmt.Printf("\nTry:\n%s %s%s%s%s%s%s%s%s%s\n", os.Args[0], bibleWordleArgs, wordFileArg, wordLengthArg, dayArg, wordPatternArgs, wildcardLettersArgs, noParkDeesSpaces, excludedLettersArgs, guessArgs)
+	fmt.Printf("\nTry:\n%s %s%s%s%s%s%s%s%s\n", os.Args[0], bibleWordleArgs, wordFileArg, wordLengthArg, wordPatternArgs, wildcardLettersArgs, noParkDeesSpaces, excludedLettersArgs, guessArgs)
 }
 
 func main() {
-	solutionWords, allWords, word, guess := initialize()
+	solutionWords, allWords, guess, answer := initialize()
 
-	if len(guess) > 0 {
-		matchingGuessWords := words.GetMatchingWords(allWords, guess, "", "", [words.MaxLetters]string{})
-		if len(matchingGuessWords) != 1 {
-			fmt.Printf("\nERROR: Guess '%s' is not in the dictionary.\n\n", guess)
-			os.Exit(1)
-		}
-	}
-
-	numTries := 1
-	if AutoGuess {
-		numTries = 6
-	}
-	for try := 1; try <= numTries; try++ {
-		if AutoGuess {
-			fmt.Printf("\nAttempt #%d:\n", try)
-		}
-		if guess == "" {
-			matchingWords, eliminationWords, bestEliminationWords := getWordSolutions(solutionWords, allWords)
-			guess = getBestGuess(matchingWords, eliminationWords, bestEliminationWords)
-			if !AutoGuess {
-				printNextGuess(guess, WordPattern, WildcardLetters, ExcludedLetters, NoParkDisSpace)
-				guess = ""
-			}
-		}
-
-		if guess != "" {
-			guessed, answer := words.GuessWord(word, guess)
-			fmt.Printf("\nGuessed '%s', match=%v\n", guess, guessed)
-			fmt.Printf("         %s\n", answer)
-			if guessed {
-				guess = ""
-				break
-			}
-			WordPattern, WildcardLetters, ExcludedLetters, NoParkDisSpace = words.TranslateGuessResults(guess, answer, WordPattern, ExcludedLetters, WildcardLetters, NoParkDisSpace)
-			matchingWords, eliminationWords, bestEliminationWords := getWordSolutions(solutionWords, allWords)
-			guess = getBestGuess(matchingWords, eliminationWords, bestEliminationWords)
-			printNextGuess(guess, WordPattern, WildcardLetters, ExcludedLetters, NoParkDisSpace)
-		} else {
-			break
-		}
-	}
-	if AutoGuess && guess != "" {
-		fmt.Printf("\nDid not guess word after %d tries, next guess is '%s'\n", numTries, guess)
-	}
+	WordPattern, WildcardLetters, ExcludedLetters, NoParkDisSpace = words.TranslateGuessResults(guess, answer, WordPattern, ExcludedLetters, WildcardLetters, NoParkDisSpace)
+	matchingWords, eliminationWords, bestEliminationWords := getWordSolutions(solutionWords, allWords)
+	guess = getBestGuess(matchingWords, eliminationWords, bestEliminationWords)
+	printNextGuess(guess, WordPattern, WildcardLetters, ExcludedLetters, NoParkDisSpace)
 	fmt.Println()
 }
