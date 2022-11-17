@@ -63,12 +63,12 @@ wordtl.exe
 ```
 Usage of ./wordtl:
   -a string
-        Answer: Enter the following characters for each letter in your guess: '=' for matching characters, '-' for matching characters that are in the wwrong location, 'X' for non-matching characters.
+        Answer: Enter the following characters for each letter in your guess - '=' for matching characters, '-' for matching characters that are in the wwrong location, 'X' for non-matching characters. Example value of 'X-X=X' would be a match for 4th character; non-match for 1st, 3rd, and 5th character; and 2nd character is in word, but not in the 2nd position.
   -b    Use Bible Wordle words from https://www.thelivingwordle.com.
   -f string
         OPTIONAL Word File: Name/Path of ASCII text file containing one word per line. Will use the Wordle list from https://www.nytimes.com/games/wordle/index.html (or https://www.thelivingwordle.com if -b is specified) if this flag is not specified.
   -g string
-        Guess: This is your guess.
+        Guess: This is your guess. Please include an Answer (-a) to filter the next guess. REQUIRED if -a is included.
   -l int
         Word Length: Number of letters to match. Wordle is 5 letters. (default 5)
   -m int

@@ -57,8 +57,9 @@ func parseFlags() {
 	}
 	flag.BoolVar(&BibleWordle, BibleWordleFlag, BibleWordle, "Use Bible Wordle words from https://www.thelivingwordle.com.")
 	flag.BoolVar(&PrintStatistics, StatisticsFlag, PrintStatistics, "Print statistics of letter distribution for each letter position.")
-	flag.StringVar(&Guess, GeussFlag, Guess, "Guess: This is your guess.")
-	answerHelp := "Answer: Enter the following characters for each letter in your guess - '" + words.MatchedChar + "' for matching characters, '" + words.WildcardChar + "' for matching characters that are in the wwrong location, '" + words.MissedChar + "' for non-matching characters."
+	guessHelp := "Guess: This is your guess. Please include an Answer (-" + AnswerFlag + ") to filter the next guess. REQUIRED if -" + AnswerFlag + " is included."
+	flag.StringVar(&Guess, GeussFlag, Guess, guessHelp)
+	answerHelp := "Answer: Enter the following characters for each letter in your guess - '" + words.MatchedChar + "' for matching characters, '" + words.WildcardChar + "' for matching characters that are in the wwrong location, '" + words.MissedChar + "' for non-matching characters. Example value of 'X-X=X' would be match for 4th character; non-match for 1st, 3rd, and 5th character; and 2nd character is in word, but not in the 2nd position."
 	flag.StringVar(&Answer, AnswerFlag, Answer, answerHelp)
 	flag.IntVar(&MaxWordsToPrint, MaxWordsToPrintFlag, MaxWordsToPrint, "Max Words to Print.")
 	flag.Parse()
@@ -101,6 +102,16 @@ func initialize() ([]string, []string, string, string) {
 
 	if Guess != "" && len(Guess) != WordLength {
 		fmt.Printf("\nERROR: Guess must be %d letters long. '%s' is %d lettters.\n\n", WordLength, Guess, len(Guess))
+		os.Exit(1)
+	}
+
+	if Guess != "" && len(Guess) == WordLength && len(Answer) != WordLength {
+		fmt.Printf("\nERROR: Answer must be %d letters long. '%s' is %d lettters.\n\n", WordLength, Answer, len(Answer))
+		os.Exit(1)
+	}
+
+	if Answer != "" && len(Guess) != WordLength {
+		fmt.Printf("\nERROR: Guess must be provided with Answer '%s'.\n\n", Answer)
 		os.Exit(1)
 	}
 
