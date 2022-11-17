@@ -173,14 +173,14 @@ func initialize() ([]string, []string, string, string) {
 	return nil, nil, "", ""
 }
 
-func printWords(words []string, description string, maxToPrint int) {
+func printWords(words []string, description string, exclamation string, maxToPrint int) {
 	if len(words) == 0 {
 		fmt.Printf("\nNo %s!\n", description)
 		return
 	}
 
 	if len(words) == 1 {
-		fmt.Printf("\n%s - EXACT MATCH! - '%s'\n", description, words[0])
+		fmt.Printf("\n%s - %s! - '%s'\n", description, exclamation, words[0])
 		return
 	}
 
@@ -260,7 +260,7 @@ func getWordSolutions(solutionWords []string, allWords []string) ([]string, []st
 	bestEliminationWords := []string{}
 
 	matchingWords := words.GetMatchingWords(solutionWords, WordPattern, ExcludedLetters, WildcardLetters, NoParkDisSpace)
-	printWords(matchingWords, "MATCHING WORDS", MaxWordsToPrint)
+	printWords(matchingWords, "MATCHING WORDS", "EXACT MATCH", MaxWordsToPrint)
 	if len(matchingWords) > 1 {
 		remainingLetterCount, remainingLetterOrder := words.GetLetterCount(matchingWords, WordPattern, WildcardLetters)
 		remainingLetterDistribution := words.GetLetterDistribution(matchingWords, WordLength)
@@ -270,10 +270,10 @@ func getWordSolutions(solutionWords []string, allWords []string) ([]string, []st
 		}
 		if len(remainingLetterOrder) > 0 {
 			eliminationWords = words.GetEliminationWords(remainingLetterOrder, allWords, WordLength, ExcludedLetters, WildcardLetters, NoParkDisSpace)
-			printWords(eliminationWords, "ELIMINATION WORDS", MaxWordsToPrint)
+			printWords(eliminationWords, "ELIMINATION WORDS", "BEST CHOICE", MaxWordsToPrint)
 			if len(eliminationWords) > 1 {
-				bestEliminationWords = words.GetBestEliminationWords(eliminationWords, WordLength, remainingLetterOrder, remainingLetterDistribution)
-				printWords(bestEliminationWords, "BEST ELIMINATION WORDS", MaxWordsToPrint)
+				bestEliminationWords = words.GetBestEliminationWords(matchingWords, eliminationWords, WordLength, remainingLetterOrder, remainingLetterCount)
+				printWords(bestEliminationWords, "BEST ELIMINATION WORDS", "BEST CHOICE", MaxWordsToPrint)
 			}
 		}
 	}
