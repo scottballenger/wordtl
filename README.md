@@ -205,7 +205,7 @@ Enter `roate` into the Wordle UI, and we get:
 #### Try #2
 Now we take the feedback from the Wordle UI and code it into the answer (`-a`) using the argument value from above:
 ```
-'=' for matching characters, '-' for matching characters that are in the wwrong location, 'X' for non-matching characters.
+'=' for matching characters, '-' for matching characters that are in the wrong location, 'X' for non-matching characters.
 ```
 and we get:
 ```
