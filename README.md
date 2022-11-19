@@ -108,14 +108,17 @@ MATCHING WORDS (10):
 tardy tarot thorn throb throw thrum torch tumor turbo tutor 
 
 Try these letters (11):
-o=8 h=5 u=4 m=2 a=2 b=2 c=1 y=1 n=1 w=1 d=1 
+o=8 h=5 u=4 b=2 m=2 a=2 n=1 d=1 y=1 c=1 w=1 
 
-Trying elimination letters: 'ohuambcdynw'
+Trying elimination letters: 'ohumbaycwnd'
 
-ELIMINATION WORDS - BEST CHOICE! - 'mohua'
+BEST ELIMINATION WORDS (2):
+mouch mucho 
+
+BEST ELIMINATION WORD - BEST CHOICE! - 'mucho'
 
 Try:
-./wordtl -p t---- -w r -2 r -x ies -g mohua  
+./wordtl -p t---- -w r -2 r -x ies -g mucho   
 ```
 
 ### Interpreting the Output
@@ -130,7 +133,7 @@ This is a list of letters in the `MATCHING WORDS` in the order of their occurran
 `wordtl` will try and come up with a word, or list of words, that will disambiguate the remaining words. In this case, 'mohua' was the best match (having as many elimination letters as possible) chosen from the dictionary as a good elimination word.
 
 #### Next Guess
-If there are remaining possibilites, `wordtl` will suggest a next guess to try. In this example `wordtl` recommends `mohua` as the next input for Wordle.
+If there are remaining possibilites, `wordtl` will suggest a next guess to try. In this example `wordtl` recommends `mucho` as the next input for Wordle.
 
 ### I didn't get any results?
 You specified to many required items and nothing matched your query. Simply remove some of the constraints to open the query to more results.
@@ -148,7 +151,7 @@ So, one could input the following to tell `wordtl` the same thing.
 ```
 
 ### Guess/Answer Example
-Here is an actual play through the game on November 16, 2022
+Here is an actual play through the game on November 19, 2022
 ```
 NOTE: Actual Trys #2-x will be different depending on the Wordle-of-the-day
 ```
@@ -185,20 +188,19 @@ e=1230 a=975 r=897 o=753 t=729 l=716 i=670 s=668 n=573 c=475 u=466 y=424 d=393 h
 
 Trying elimination letters: 'earotlisncuydhpmgbfkwvzxqj'
 
-ELIMINATION WORDS (3):
-oater orate roate 
-
 BEST ELIMINATION WORDS (3):
 oater orate roate 
 
+BEST ELIMINATION WORD - BEST CHOICE! - 'roate'
+
 Try:
-./wordtl -p ----- -g oater 
+./wordtl -p ----- -g roate 
 ```
-`wordtl` is telling us to use `oater orate roate` as a starter word in Wordle. In this case, We'll just accept the first choice recommended by `wordtl`
+`wordtl` is telling us to use `roate` as a starter word in Wordle. In this case, we'll just accept the best choice recommended by `wordtl`
 
-Enter `oater` into the Wordle UI, and we get:
+Enter `roate` into the Wordle UI, and we get:
 
-![Wordle.1 using oater](./screenshots/Wordle.1.png)
+![Wordle.1 using roate](./screenshots/Wordle.1.png)
 
 #### Try #2
 Now we take the feedback from the Wordle UI and code it into the answer (`-a`) using the argument value from above:
@@ -207,63 +209,64 @@ Now we take the feedback from the Wordle UI and code it into the answer (`-a`) u
 ```
 and we get:
 ```
--a X=X==
+-a -X---
 ```
 and we have the following Input:
 ```
-./wordtl -p ----- -g oater -a X=X==
+./wordtl -p ----- -g roate -a -X---
 ```
 Output:
 ```
 Word length: 5
-Guess:  'oater'
-Answer: 'X=X=='
+Guess:  'roate'
+Answer: '-X---'
 Word pattern: '-----'
 Wild Card letters: ''
 Excluded letters: ''
 Using built-in Wordle words.
 
-MATCHING WORDS (21):
-baker baler caper eager gamer gayer gazer lager layer maker paler paper parer
-payer racer rarer safer saner wafer wager waver 
+MATCHING WORDS (17):
+after alert alter avert cater eater extra great hater later taker tamer taper
+terra tread treat water 
 
-Try these letters (14):
-g=6 p=6 l=4 w=3 y=3 s=2 k=2 m=2 f=2 b=2 c=2 n=1 z=1 v=1 
+Try these letters (12):
+l=3 c=1 m=1 h=1 p=1 f=1 w=1 g=1 d=1 k=1 x=1 v=1 
 
-Trying elimination letters: 'gplywkbfsmczvn'
+Trying elimination letters: 'lhpfwgcmxvdk'
 
-ELIMINATION WORDS (5):
-gilpy glyph gulpy pigly pygal 
+BEST ELIMINATION WORDS (37):
+chalk chawl chelp child clamp clomp clump delph dwalm felch filch flack fleck
+flick flimp flock flump glamp glyph gulch gulph lymph melch milch mulch pelch
+phlox pilch plack pleck plock pluck welch whelk whelm whelp whilk 
 
-BEST ELIMINATION WORDS (5):
-gilpy glyph gulpy pigly pygal 
+BEST ELIMINATION WORD - BEST CHOICE! - 'fleck'
 
 Try:
-./wordtl -p -a-er -x ot -g gilpy 
+./wordtl -p ----- -w rate -1 r -3 a -4 t -5 e -x o -g fleck
 ```
-Enter `gilpy` into the Wordle UI, and we get:
+Enter `fleck` into the Wordle UI, and we get:
 
-![Wordle.2 using gilpy](./screenshots/Wordle.2.png)
+![Wordle.2 using fleck](./screenshots/Wordle.2.png)
 
 #### Repeat
 Repeat until a solution is arrived at as follows:
 ``` 
 # Try #3
-./wordtl -p -a-er -x ot -g gilpy -a XXXXX
+./wordtl -p -a-er -x ot -g fleck -a XX=XX
 
 Try:
-./wordtl -p -a-er -x otgilpy -g wakfs 
+./wordtl -p --e-- -w rate -1 r -3 a -4 t -5 e -x oflck -g gived 
 
 # Try #4
-./wordtl -p -a-er -x otgilpy -g wakfs -a X==XX
+./wordtl -p --e-- -w rate -1 r -3 a -4 t -5 e -x oflck -g gived -a XX--X
 
 Try:
-./wordtl -p -aker -x otgilpywfs -g baker 
+./wordtl -p --e-- -w ratev -1 r -3 av -4 te -5 e -x oflckgid -g avert 
 ```
 
 and then we have success!
 
-![Wordle.4 using baker](./screenshots/Wordle.4.png)
+![Wordle.4 using avert](./screenshots/Wordle.4.png)
 
 
 ## Building/Testing `wordtl`

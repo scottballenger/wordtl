@@ -200,8 +200,10 @@ func printWords(words []string, description string, exclamation string, maxToPri
 		fmt.Printf("Only printing first %d\n", maxToPrint)
 	}
 	lineLength := 0
-	sort.Strings(words)
-	for i, word := range words {
+	sortedWords := []string{}
+	sortedWords = append(sortedWords, words...) // Create a copy so sort does not disturb the original array.
+	sort.Strings(sortedWords)
+	for i, word := range sortedWords {
 		fmt.Print(word)
 		lineLength += len(word) + 1
 		if lineLength+len(word) > 80 {
@@ -270,7 +272,7 @@ func getWordSolutions(solutionWords []string, allWords []string) ([]string, []st
 	eliminationWords := []string{}
 	bestEliminationWords := []string{}
 
-	matchingWords := words.GetMatchingWords(solutionWords, WordPattern, ExcludedLetters, WildcardLetters, NoParkDisSpace)
+	matchingWords := words.GetMatchingWords(solutionWords, WordPattern, ExcludedLetters, WildcardLetters, true, NoParkDisSpace)
 	printWords(matchingWords, "MATCHING WORDS", "EXACT MATCH", MaxWordsToPrint)
 	if len(matchingWords) > 1 {
 		remainingLetterCount, remainingLetterOrder := words.GetLetterCount(matchingWords, WordPattern, WildcardLetters)
@@ -281,10 +283,17 @@ func getWordSolutions(solutionWords []string, allWords []string) ([]string, []st
 		}
 		if len(remainingLetterOrder) > 0 {
 			eliminationWords = words.GetEliminationWords(remainingLetterOrder, allWords, WordLength, ExcludedLetters, WildcardLetters, NoParkDisSpace)
-			printWords(eliminationWords, "ELIMINATION WORDS", "BEST CHOICE", MaxWordsToPrint)
+			if len(eliminationWords) < 2*MaxWordsToPrint {
+				printWords(eliminationWords, "ELIMINATION WORDS", "BEST CHOICE", MaxWordsToPrint)
+			}
 			if len(eliminationWords) > 1 {
-				bestEliminationWords = words.GetBestEliminationWords(matchingWords, eliminationWords, WordLength, remainingLetterOrder, remainingLetterCount)
+				bestEliminationWords = words.GetBestEliminationWords(matchingWords, eliminationWords, WordLength, remainingLetterOrder, remainingLetterCount, remainingLetterDistribution)
 				printWords(bestEliminationWords, "BEST ELIMINATION WORDS", "BEST CHOICE", MaxWordsToPrint)
+				if len(bestEliminationWords) > 1 {
+					bestEliminationWord := []string{}
+					bestEliminationWord = append(bestEliminationWord, bestEliminationWords[0])
+					printWords(bestEliminationWord, "BEST ELIMINATION WORD", "BEST CHOICE", MaxWordsToPrint)
+				}
 			}
 		}
 	}
