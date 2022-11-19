@@ -2,7 +2,7 @@
 
 `wordtl` is a `tool` that allows `anyone` to `help them solve a Wordle`, `Living Wordle`, or guess a word from a dictionary.
 
-`wordtl` includes the Wordle lists (5 letter words) from https://www.nytimes.com/games/Wordle/index.html and Living Wordle from https://www.thelivingwordle.com that are stored in this repo. Optionally, `wordtl` can read a word file (an ASCII text file with one word per line) to use as its dictionary.
+`wordtl` includes the Wordle lists (5 letter words) from https://www.nytimes.com/games/wordle/index.html and Living Wordle from https://www.thelivingwordle.com that are stored in this repo. Optionally, `wordtl` can read a word file (an ASCII text file with one word per line) to use as its dictionary.
 
 ## Use Cases
 `wordtl` is a powerful search engine that provides answers for finding a word in a dictionary with the same number of letters.
