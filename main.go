@@ -9,19 +9,22 @@ import (
 	"sort"
 	"strings"
 	"wordtl/words"
+
+	"github.com/gookit/color"
 )
 
 const (
-	WordLengthFlag      = "l"
-	WordPatternFlag     = "p"
-	WildcardFlag        = "w"
-	ExcludedFlag        = "x"
-	WordFileFlag        = "f"
-	StatisticsFlag      = "s"
-	MaxWordsToPrintFlag = "m"
-	GeussFlag           = "g"
 	AnswerFlag          = "a"
 	BibleWordleFlag     = "b"
+	WordFileFlag        = "f"
+	GeussFlag           = "g"
+	WordLengthFlag      = "l"
+	MaxWordsToPrintFlag = "m"
+	NextWordModeFlag    = "n"
+	WordPatternFlag     = "p"
+	StatisticsFlag      = "s"
+	WildcardFlag        = "w"
+	ExcludedFlag        = "x"
 )
 
 var (
@@ -40,9 +43,11 @@ var (
 	DoWordle        = true
 	BibleWordle     = false
 	DoBibleWordle   = false
+	DoAutoPlay      = false
 )
 
 func parseFlags() {
+	flag.BoolVar(&DoAutoPlay, NextWordModeFlag, DoAutoPlay, "Auto Play: Geuss along side Wordle UI.")
 	flag.IntVar(&WordLength, WordLengthFlag, WordLength, "Word Length: Number of letters to match. Wordle is 5 letters.")
 	wordPatternHelp := "Pattern to Match: Known letters will be in the position that they appear. Wildecard placeholders '" + words.WildcardChar + "' 1) must include all letters specified by the -" + WildcardFlag + " flag and 2) can be any other letter that is not excluded by the -" + ExcludedFlag + " flag. Example value of 't" + strings.Repeat(words.WildcardChar, 4) + "' would lookup words with a 't' in the beginning of a 5 letter word."
 	flag.StringVar(&WordPattern, WordPatternFlag, WordPattern, wordPatternHelp)
@@ -302,6 +307,8 @@ func getWordSolutions(solutionWords []string, allWords []string) ([]string, []st
 
 func getBestGuess(matchingWords []string, eliminationWords []string, bestEliminationWords []string) string {
 	if len(matchingWords) == 1 || len(matchingWords) == 2 {
+		fmt.Println()
+		fmt.Println("Using MATCHING WORD - '" + matchingWords[0] + "'")
 		return matchingWords[0]
 	} else if len(bestEliminationWords) > 0 {
 		return bestEliminationWords[0]
@@ -365,12 +372,132 @@ func printNextGuess(
 	fmt.Printf("\nTry:\n%s %s%s%s%s%s%s%s%s\n", os.Args[0], bibleWordleArgs, wordFileArg, wordLengthArg, wordPatternArgs, wildcardLettersArgs, noParkDeesSpaces, excludedLettersArgs, guessArgs)
 }
 
+func getUserInput(defaultVal string, valName string, validChars string, validCharsMsg string, validLength int) string {
+	// TODO: Add unit test
+	exitStr := "0"
+	defaultStr := ""
+	userInput := ""
+	if len(defaultVal) > 0 {
+		defaultStr = "default = '" + defaultVal + "', "
+	}
+	for {
+		fmt.Print(valName, " (", defaultStr, "exit = '"+exitStr+"'): ")
+		reader := bufio.NewReader(os.Stdin)
+		userInput, _ = reader.ReadString('\n')
+		userInput = strings.TrimSuffix(userInput, "\n")
+		if userInput == "" {
+			userInput = defaultVal
+		}
+		if len(userInput) == len(exitStr) && userInput == exitStr {
+			os.Exit(0)
+		}
+		if len(userInput) == validLength {
+			// TODO: Add Input validation
+			break
+		} else {
+			fmt.Println()
+			fmt.Println("Value must be " + fmt.Sprintf("%d", validLength) + " characters, '" + userInput + "' is " + fmt.Sprintf("%d", len(userInput)) + " characters.")
+			fmt.Println()
+		}
+	}
+
+	return userInput
+}
+
+func printWordleResult(guess string, answer string) bool {
+	match := color.New(color.BgGreen, color.Bold)
+	almost := color.New(color.BgLightYellow, color.Bold)
+	miss := color.New(color.BgDarkGray, color.Bold)
+	incorrect := color.New(color.BgHiRed, color.Bold)
+	correctForm := true
+
+	if len(guess) == len(answer) {
+		for ndx, letter := range guess {
+			char := strings.ToUpper(string(letter))
+			switch string(answer[ndx]) {
+			case words.MatchedChar:
+				match.Print(" " + string(char) + " ")
+			case words.MissedChar:
+				miss.Print(" " + string(char) + " ")
+			case words.WildcardChar:
+				almost.Print(" " + string(char) + " ")
+			default:
+				incorrect.Print(" " + string(char) + " ")
+				correctForm = false
+			}
+			if ndx < len(guess)-1 {
+				fmt.Print(" ")
+			}
+		}
+		fmt.Println()
+
+		if !correctForm {
+			fmt.Println("Answer: '" + answer + "' must be in the proper form.")
+		}
+	} else {
+		fmt.Println("Guess: '" + guess + "' and Answer: '" + answer + "' must be the same length.")
+		correctForm = false
+	}
+
+	return correctForm
+}
+
+func printWordleSolution(guesses [6]string, answers [6]string, numTries int) {
+	fmt.Println()
+	fmt.Println("Congratulations, you have found the solution word in " + fmt.Sprintf("%d", numTries+1) + " turns!")
+	fmt.Println()
+	for i := 0; i <= numTries; i++ {
+		printWordleResult(guesses[i], answers[i])
+		fmt.Println()
+	}
+}
+
 func main() {
 	solutionWords, allWords, guess, answer := initialize()
 
-	WordPattern, WildcardLetters, ExcludedLetters, NoParkDisSpace = words.TranslateGuessResults(guess, answer, WordPattern, ExcludedLetters, WildcardLetters, NoParkDisSpace)
-	matchingWords, eliminationWords, bestEliminationWords := getWordSolutions(solutionWords, allWords)
-	guess = getBestGuess(matchingWords, eliminationWords, bestEliminationWords)
-	printNextGuess(guess, WordPattern, WildcardLetters, ExcludedLetters, NoParkDisSpace)
-	fmt.Println()
+	if !DoAutoPlay {
+		WordPattern, WildcardLetters, ExcludedLetters, NoParkDisSpace = words.TranslateGuessResults(guess, answer, WordPattern, ExcludedLetters, WildcardLetters, NoParkDisSpace)
+		matchingWords, eliminationWords, bestEliminationWords := getWordSolutions(solutionWords, allWords)
+		guess = getBestGuess(matchingWords, eliminationWords, bestEliminationWords)
+		printNextGuess(guess, WordPattern, WildcardLetters, ExcludedLetters, NoParkDisSpace)
+		fmt.Println()
+	} else {
+		var guesses [6]string
+		var answers [6]string
+		for try := 0; try < 6; try++ {
+			WordPattern, WildcardLetters, ExcludedLetters, NoParkDisSpace = words.TranslateGuessResults(guess, answer, WordPattern, ExcludedLetters, WildcardLetters, NoParkDisSpace)
+			matchingWords, eliminationWords, bestEliminationWords := getWordSolutions(solutionWords, allWords)
+			guess = getBestGuess(matchingWords, eliminationWords, bestEliminationWords)
+
+			fmt.Println()
+			fmt.Println("TRY #" + fmt.Sprintf("%d", try+1))
+			fmt.Println("------")
+			fmt.Println()
+			userGuess := guess
+			userAnswer := answer
+			for {
+				userGuess = getUserInput(userGuess, "Enter your Guess", "a-z", "a-z", WordLength)
+				userAnswer = getUserInput("", "Enter your Answer", "=-X", "=-X", WordLength)
+				fmt.Println()
+				correctForm := printWordleResult(userGuess, userAnswer)
+				fmt.Println()
+
+				if correctForm {
+					correct := getUserInput("y", "Is this correct?", "yn", "y or n", 1)
+					if correct == "y" {
+						guess = userGuess
+						answer = userAnswer
+						break
+					}
+				}
+			}
+
+			guesses[try] = guess
+			answers[try] = answer
+			if answer == "=====" {
+				printWordleSolution(guesses, answers, try)
+				break
+			}
+		}
+	}
 }
