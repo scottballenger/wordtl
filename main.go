@@ -17,7 +17,7 @@ const (
 	AnswerFlag          = "a"
 	BibleWordleFlag     = "b"
 	WordFileFlag        = "f"
-	GeussFlag           = "g"
+	GuessFlag           = "g"
 	WordLengthFlag      = "l"
 	MaxWordsToPrintFlag = "m"
 	NextWordModeFlag    = "n"
@@ -25,6 +25,8 @@ const (
 	StatisticsFlag      = "s"
 	WildcardFlag        = "w"
 	ExcludedFlag        = "x"
+
+	MaxTries = 6
 )
 
 var (
@@ -47,7 +49,7 @@ var (
 )
 
 func parseFlags() {
-	flag.BoolVar(&DoAutoPlay, NextWordModeFlag, DoAutoPlay, "Auto Play: Geuss along side Wordle UI.")
+	flag.BoolVar(&DoAutoPlay, NextWordModeFlag, DoAutoPlay, "Auto Play: Guess along side Wordle UI.")
 	flag.IntVar(&WordLength, WordLengthFlag, WordLength, "Word Length: Number of letters to match. Wordle is 5 letters.")
 	wordPatternHelp := "Pattern to Match: Known letters will be in the position that they appear. Wildecard placeholders '" + words.WildcardChar + "' 1) must include all letters specified by the -" + WildcardFlag + " flag and 2) can be any other letter that is not excluded by the -" + ExcludedFlag + " flag. Example value of 't" + strings.Repeat(words.WildcardChar, 4) + "' would lookup words with a 't' in the beginning of a 5 letter word."
 	flag.StringVar(&WordPattern, WordPatternFlag, WordPattern, wordPatternHelp)
@@ -63,8 +65,8 @@ func parseFlags() {
 	flag.BoolVar(&BibleWordle, BibleWordleFlag, BibleWordle, "Use Bible Wordle words from https://www.thelivingwordle.com.")
 	flag.BoolVar(&PrintStatistics, StatisticsFlag, PrintStatistics, "Print statistics of letter distribution for each letter position.")
 	guessHelp := "Guess: This is your guess. Please include an Answer (-" + AnswerFlag + ") to filter the next guess. REQUIRED if -" + AnswerFlag + " is included."
-	flag.StringVar(&Guess, GeussFlag, Guess, guessHelp)
-	answerHelp := "Answer: Enter the following characters for each letter in your guess - '" + words.MatchedChar + "' for matching characters, '" + words.WildcardChar + "' for matching characters that are in the wrong location, '" + words.MissedChar + "' for non-matching characters. Example value of 'X-X=X' would be match for 4th character; non-match for 1st, 3rd, and 5th character; and 2nd character is in word, but not in the 2nd position."
+	flag.StringVar(&Guess, GuessFlag, Guess, guessHelp)
+	answerHelp := "Answer: Enter the following characters for each letter in your guess - '" + words.MatchedChar + "' for matching characters, '" + words.WildcardChar + "' for matching characters that are in the wrong location, '" + words.MissedChar + "' for non-matching characters. Example value of '" + words.MissedChar + words.WildcardChar + words.MissedChar + words.MatchedChar + words.MissedChar + "' would be match for 4th character; non-match for 1st, 3rd, and 5th character; and 2nd character is in word, but not in the 2nd position."
 	flag.StringVar(&Answer, AnswerFlag, Answer, answerHelp)
 	flag.IntVar(&MaxWordsToPrint, MaxWordsToPrintFlag, MaxWordsToPrint, "Max Words to Print.")
 	flag.Parse()
@@ -356,7 +358,7 @@ func printNextGuess(
 
 	guessArgs := ""
 	if len(guess) > 0 {
-		guessArgs = "-" + GeussFlag + " " + guess + " "
+		guessArgs = "-" + GuessFlag + " " + guess + " "
 	}
 
 	wordLengthArg := ""
@@ -372,7 +374,21 @@ func printNextGuess(
 	fmt.Printf("\nTry:\n%s %s%s%s%s%s%s%s%s\n", os.Args[0], bibleWordleArgs, wordFileArg, wordLengthArg, wordPatternArgs, wildcardLettersArgs, noParkDeesSpaces, excludedLettersArgs, guessArgs)
 }
 
-func getUserInput(defaultVal string, valName string, validChars string, validCharsMsg string, validLength int) string {
+func getUserInputRange(defaultVal string, valName string, startChar string, endChar string, validCharsMsg string, validCharsHelp string, validLength int) string {
+	validChars := ""
+	if startChar[0] < endChar[0] && len(startChar) == 1 && len(endChar) == 1 {
+		for char := startChar[0]; char <= endChar[0]; char++ {
+			validChars += string(char)
+		}
+		return getUserInput(defaultVal, valName, validChars, validCharsMsg, validCharsHelp, validLength)
+	}
+	fmt.Println()
+	fmt.Println("Invalid range starting with '" + startChar + "' and ending with '" + endChar + "'.")
+	fmt.Println()
+	return ""
+}
+
+func getUserInput(defaultVal string, valName string, validChars string, validCharsMsg string, validCharsHelp string, validLength int) string {
 	// TODO: Add unit test
 	exitStr := "0"
 	defaultStr := ""
@@ -385,6 +401,7 @@ func getUserInput(defaultVal string, valName string, validChars string, validCha
 		reader := bufio.NewReader(os.Stdin)
 		userInput, _ = reader.ReadString('\n')
 		userInput = strings.TrimSuffix(userInput, "\n")
+		userInput = strings.ToLower(userInput)
 		if userInput == "" {
 			userInput = defaultVal
 		}
@@ -392,8 +409,22 @@ func getUserInput(defaultVal string, valName string, validChars string, validCha
 			os.Exit(0)
 		}
 		if len(userInput) == validLength {
-			// TODO: Add Input validation
-			break
+			validInput := true
+			invalidChars := ""
+			for _, thisChar := range userInput {
+				letter := string(thisChar)
+				if !strings.Contains(strings.ToLower(validChars), letter) {
+					validInput = false
+					invalidChars += letter
+				}
+			}
+			if validInput {
+				break
+			} else {
+				fmt.Println()
+				fmt.Println("Value must contain only the following characters: '" + validCharsMsg + "'" + validCharsHelp + ". Your input: '" + userInput + "' includes the following invalid characters: '" + invalidChars + "'.")
+				fmt.Println()
+			}
 		} else {
 			fmt.Println()
 			fmt.Println("Value must be " + fmt.Sprintf("%d", validLength) + " characters, '" + userInput + "' is " + fmt.Sprintf("%d", len(userInput)) + " characters.")
@@ -442,7 +473,7 @@ func printWordleResult(guess string, answer string) bool {
 	return correctForm
 }
 
-func printWordleSolution(guesses [6]string, answers [6]string, numTries int) {
+func printWordleSolution(guesses [MaxTries]string, answers [MaxTries]string, numTries int) {
 	fmt.Println()
 	fmt.Println("Congratulations, you have found the solution word in " + fmt.Sprintf("%d", numTries+1) + " turns!")
 	fmt.Println()
@@ -450,6 +481,17 @@ func printWordleSolution(guesses [6]string, answers [6]string, numTries int) {
 		printWordleResult(guesses[i], answers[i])
 		fmt.Println()
 	}
+}
+
+func isAnswerCorrect(answer string, validlength int) bool {
+	if len(answer) != validlength {
+		return false
+	}
+	correct := true
+	for i := 0; i < len(answer); i++ {
+		correct = correct && (string(answer[i]) == words.MatchedChar)
+	}
+	return correct
 }
 
 func main() {
@@ -462,9 +504,9 @@ func main() {
 		printNextGuess(guess, WordPattern, WildcardLetters, ExcludedLetters, NoParkDisSpace)
 		fmt.Println()
 	} else {
-		var guesses [6]string
-		var answers [6]string
-		for try := 0; try < 6; try++ {
+		var guesses [MaxTries]string
+		var answers [MaxTries]string
+		for try := 0; try < MaxTries; try++ {
 			WordPattern, WildcardLetters, ExcludedLetters, NoParkDisSpace = words.TranslateGuessResults(guess, answer, WordPattern, ExcludedLetters, WildcardLetters, NoParkDisSpace)
 			matchingWords, eliminationWords, bestEliminationWords := getWordSolutions(solutionWords, allWords)
 			guess = getBestGuess(matchingWords, eliminationWords, bestEliminationWords)
@@ -476,15 +518,19 @@ func main() {
 			userGuess := guess
 			userAnswer := answer
 			for {
-				userGuess = getUserInput(userGuess, "Enter your Guess", "a-z", "a-z", WordLength)
-				userAnswer = getUserInput("", "Enter your Answer", "=-X", "=-X", WordLength)
+				userGuess = getUserInputRange(userGuess, "Enter your Guess", "a", "z", "a-z", "", WordLength)
+				userAnswer = getUserInput("", "Enter your Answer", words.MatchedChar+words.WildcardChar+words.MissedChar, words.MatchedChar+words.WildcardChar+words.MissedChar, " (where '"+words.MatchedChar+"' is a matching character in position, '"+words.WildcardChar+"' is a matching character out of position, and '"+words.MissedChar+"' is a non-matching character)", WordLength)
 				fmt.Println()
 				correctForm := printWordleResult(userGuess, userAnswer)
 				fmt.Println()
 
+				const (
+					yes = "y"
+					no  = "n"
+				)
 				if correctForm {
-					correct := getUserInput("y", "Is this correct?", "yn", "y or n", 1)
-					if correct == "y" {
+					correct := getUserInput(yes, "Is this correct?", yes+no, yes+" or "+no, "", 1)
+					if correct == yes {
 						guess = userGuess
 						answer = userAnswer
 						break
@@ -494,7 +540,7 @@ func main() {
 
 			guesses[try] = guess
 			answers[try] = answer
-			if answer == "=====" {
+			if isAnswerCorrect(answer, WordLength) {
 				printWordleSolution(guesses, answers, try)
 				break
 			}

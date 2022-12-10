@@ -9,7 +9,7 @@ import (
 const (
 	WildcardChar = "-"
 	MatchedChar  = "="
-	MissedChar   = "X"
+	MissedChar   = "x"
 	MaxLetters   = 9
 )
 
@@ -379,8 +379,17 @@ func TranslateGuessResults(
 					}
 				}
 			case MissedChar:
-				if !strings.Contains(excludedLetters, guessLetter) {
-					excludedLetters += guessLetter
+				// Can be another instance of an exsiting letter.
+				if !strings.Contains(wordPattern, guessLetter) && !strings.Contains(wildcardLetters, guessLetter) {
+					if !strings.Contains(excludedLetters, guessLetter) {
+						excludedLetters += guessLetter
+					}
+				} else {
+					if i < MaxLetters {
+						if !strings.Contains(noParkDisSpace[i], guessLetter) {
+							noParkDisSpace[i] += guessLetter
+						}
+					}
 				}
 			}
 		}

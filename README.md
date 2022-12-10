@@ -1,11 +1,17 @@
 # `wordtl`
 
-`wordtl` is a `tool` that allows `anyone` to `help them solve a Wordle`, `Living Wordle`, or guess a word from a dictionary.
+`wordtl` is a `tool` that helps `anyone` to `solve a Wordle`, `Living Wordle`, or `guess a word from a dictionary`.
 
 `wordtl` includes the Wordle lists (5 letter words) from https://www.nytimes.com/games/wordle/index.html and Living Wordle from https://www.thelivingwordle.com that are stored in this repo. Optionally, `wordtl` can read a word file (an ASCII text file with one word per line) to use as its dictionary.
 
 ## Use Cases
 `wordtl` is a powerful search engine that provides answers for finding a word in a dictionary with the same number of letters.
+
+### TLDR; Just Play Wordle or Living Wordle - Play Along Mode!
+Here's a [quickstart to get you going with Wordle](#tldr-just-play-wordle-or-living-wordle) in `wordtl` play-along mode that will walk you through a game of Wordle and help you with the next guess.
+
+### Guess and Answer to Create Search Patterns
+[Enter Guesses and Answers one at a time](#generate-search-terms-from-guess-and-answer) is an example of how to use `wordtl` to simplify in the process of creating search patterns.
 
 ### Search Patterns
 Invoke `wordtl` with search parameters to help you find a list of words that meet your criteria. For example:
@@ -13,9 +19,6 @@ Invoke `wordtl` with search parameters to help you find a list of words that mee
   - "T" as the first letter, and
   - "R" is not in postion 2,
   - "IES" are excluded.
-
-### Solve Wordle or Living Wordle
-Below in the section [Easier Way](#easier-way) is an example of how to use `wordtl` to solve a Wordle using the Wordle UI.
 
 ## Prerequisites
 
@@ -63,7 +66,7 @@ wordtl.exe
 ```
 Usage of ./wordtl:
   -a string
-        Answer: Enter the following characters for each letter in your guess - '=' for matching characters, '-' for matching characters that are in the wrong location, 'X' for non-matching characters. Example value of 'X-X=X' would be a match for 4th character; non-match for 1st, 3rd, and 5th character; and 2nd character is in word, but not in the 2nd position.
+        Answer: Enter the following characters for each letter in your guess - '=' for matching characters, '-' for matching characters that are in the wrong location, 'x' for non-matching characters. Example value of 'x-x=x' would be a match for 4th character; non-match for 1st, 3rd, and 5th character; and 2nd character is in word, but not in the 2nd position.
   -b    Use Bible Wordle words from https://www.thelivingwordle.com.
   -f string
         OPTIONAL Word File: Name/Path of ASCII text file containing one word per line. Will use the Wordle list from https://www.nytimes.com/games/wordle/index.html (or https://www.thelivingwordle.com if -b is specified) if this flag is not specified.
@@ -73,6 +76,7 @@ Usage of ./wordtl:
         Word Length: Number of letters to match. Wordle is 5 letters. (default 5)
   -m int
         Max Words to Print. (default 100)
+  -n	  Auto Play: Guess along side Wordle UI.
   -p string
         Pattern to Match: Known letters will be in the position that they appear. Wildecard placeholders '-' 1) must include all letters specified by the -w flag and 2) can be any other letter that is not excluded by the -x flag. Example value of 't----' would lookup words with a 't' in the beginning of a 5 letter word.
   -s    Print statistics of letter distribution for each letter position.
@@ -83,6 +87,7 @@ Usage of ./wordtl:
   -(1-9) string
       Letters that don't belong in this position (each position, 1 through 9, has their own flag): Letters that appear in the word, but not in postion #(1-9) Example value of '-4 ies' means that 'i', 'e', or 's' cannot appear in position #4.
 ```
+
 ## Example
 ### Example Input
 What is a list of 5 letter words that have:
@@ -138,22 +143,167 @@ If there are remaining possibilites, `wordtl` will suggest a next guess to try. 
 ### I didn't get any results?
 You specified to many required items and nothing matched your query. Simply remove some of the constraints to open the query to more results.
 
-## Easier Way
-Instead of hand entering all of the specific parameters manually (-p t---- -w r -2 r -x ies) in the example above, `wordtl` can automatically generate them for you using the Guess (`-g`) and Answer (`-a`) arguments.
+## TLDR; Just Play Wordle or Living Wordle!
+If you just want to play Wordle, or Living Wordle, and get all of the advantages of `wordtl` right away, just use the `play-along` mode using the `-n` argument.
+
+This will allow you to enter guesses in the Wordle UI, and come up withthe next guess based on the remaining words. Here's an example when the solution was `AVERT`
+
+### Entering Answers From Wordle UI
+Here's an example play from the Wordle UI. We'lluse it as an example on how to enter guess answers. To get to the solution `AVERT`, the following guesses were used:
+
+![Wordle.4 using avert](./screenshots/Wordle.4.png)
+
+The following nomenclature are used to mimic the results from the Wordle UI:
+```
+'=' for matching characters, <a green box>
+'-' for matching characters that are in the wrong location, <a yellow box> 
+'x' for non-matching characters. <a gray box>
+```
+
+So, in the case of `ROATE` input we would create an answer string of `-x---`, and for `FLECK` we would answer `xx=xx` to indicate the response from the Wordle UI.
+
+In the case of `ROATE` and `-x---`, `wordtl` will give the following feedback to ensure that your `answer` is correct:
+
+![wordtl.1 using roate](./screenshots/wordtl.1.png)
+
+You want to make sure the color/letter combinations match what is displayed in the Wordle UI above.
+
+This is the primary feedback for `wordtl` to help you fugure out your next guess.
+
+### Play Along with Wordle UI
+In this example, we take the recommended guess from `wordtl` by accepting the default `guess` for each turn.
+
+Enter `./wordtl -n`
+
+```
+Word length: 5
+Guess:  ''
+Answer: ''
+Word pattern: '-----'
+Wild Card letters: ''
+Excluded letters: ''
+Using built-in Wordle words.
+
+MATCHING WORDS (2309):
+Only printing first 100
+aback abase abate abbey abbot abhor abide abled abode abort about above abuse
+abyss acorn acrid actor acute adage adapt adept admin admit adobe adopt adore
+adorn adult affix afire afoot afoul after again agape agate agent agile aging
+aglow agony agree ahead aider aisle alarm album alert algae alibi alien align
+alike alive allay alley allot allow alloy aloft alone along aloof aloud alpha
+altar alter amass amaze amber amble amend amiss amity among ample amply amuse
+angel anger angle angry angst anime ankle annex annoy annul anode antic anvil
+aorta apart aphid aping apnea apple apply apron aptly arbor 
+
+Try these letters (26):
+e=1230 a=975 r=897 o=753 t=729 l=716 i=670 s=668 n=573 c=475 u=466 y=424 d=393 h=387 p=365 m=316 g=310 b=280 f=229 k=210 w=194 v=152 z=40 x=37 q=29 j=27 
+
+Trying elimination letters: 'earotlisncuydhpmgbfkwvzxqj'
+
+BEST ELIMINATION WORDS (3):
+oater orate roate 
+
+BEST ELIMINATION WORD - BEST CHOICE! - 'roate'
+
+TRY #1
+------
+
+Enter your Guess (default = 'roate', exit = '0'): <enter>
+Enter your Answer (exit = '0'): -x---<enter>
+```
+![Wordle.1 using roate](./screenshots/Wordle.1.png)
+![wordtl.1 using roate](./screenshots/wordtl.1.png)
+```
+Is this correct? (default = 'y', exit = '0'): <enter>
+
+MATCHING WORDS (17):
+after alert alter avert cater eater extra great hater later taker tamer taper
+terra tread treat water 
+
+Try these letters (12):
+l=3 f=1 g=1 v=1 m=1 h=1 p=1 d=1 w=1 c=1 k=1 x=1 
+
+Trying elimination letters: 'lckxgvmhpdfw'
+
+BEST ELIMINATION WORDS (37):
+chalk chawl chelp child clamp clomp clump delph dwalm felch filch flack fleck
+flick flimp flock flump glamp glyph gulch gulph lymph melch milch mulch pelch
+phlox pilch plack pleck plock pluck welch whelk whelm whelp whilk 
+
+BEST ELIMINATION WORD - BEST CHOICE! - 'fleck'
+
+TRY #2
+------
+
+Enter your Guess (default = 'fleck', exit = '0'): <enter>
+Enter your Answer (exit = '0'): xx=xx<enter>
+```
+![Wordle.2 using fleck](./screenshots/Wordle.2.png)
+![wordtl.2 using fleck](./screenshots/wordtl.2.png)
+```
+Is this correct? (default = 'y', exit = '0'): <enter>
+
+MATCHING WORDS (4):
+avert great tread treat 
+
+Try these letters (3):
+d=1 g=1 v=1 
+
+Trying elimination letters: 'gvd'
+
+BEST ELIMINATION WORDS (4):
+gived goved gyved vadge 
+
+BEST ELIMINATION WORD - BEST CHOICE! - 'gived'
+
+TRY #3
+------
+
+Enter your Guess (default = 'gived', exit = '0'): <enter>
+Enter your Answer (exit = '0'): xx--x<enter>
+```
+![Wordle.3 using gived](./screenshots/Wordle.3.png)
+![wordtl.3 using gived](./screenshots/wordtl.3.png)
+```
+Is this correct? (default = 'y', exit = '0'): <enter> 
+
+MATCHING WORDS - EXACT MATCH! - 'avert'
+
+Using MATCHING WORD - 'avert'
+
+TRY #4
+------
+
+Enter your Guess (default = 'avert', exit = '0'): <enter>
+Enter your Answer (exit = '0'): =====<enter>
+```
+![Wordle.4 using avert](./screenshots/Wordle.4.png)
+![wordtl.4 using avert](./screenshots/wordtl.4.png)
+```
+Is this correct? (default = 'y', exit = '0'): <enter>
+
+Congratulations, you have found the solution word in 4 turns!
+```
+![wordtl.all using roate](./screenshots/wordtl.all.png)
+
+## Generate Search Terms From Guess and Answer
+Instead of entering all of the specific parameters manually (-p t---- -w r -2 r -x ies) to do a search, `wordtl` can automatically generate them for you using the Guess (`-g`) and Answer (`-a`) arguments.
 
 ### Guess/Answer
-The example above `What is a list of 5 letter words that have: "T" as the first letter, and "R" is not in postion 2, and "IES" are excluded` came from trying to guess `tries` in Wordle. The answer from Wordle was that "T" is a match in position, "R" is in the word but not in position 2, and "IES" do not match.
+The example `What is a list of 5 letter words that have: "T" as the first letter, and "R" is not in postion 2, and "IES" are excluded` came from trying to guess `tries` in Wordle. The answer from Wordle was that "T" is a match in position, "R" is in the word but not in position 2, and "IES" do not match.
 
 So, one could input the following to tell `wordtl` the same thing.
 
 ```
-./wordtl -g tries -a '=-XXX'
+./wordtl -g tries -a '=-xxx'
 ```
-
+is equivilant to manually entering
+```
+./wordtl -p t---- -w r -2 r -x ies
+```
 ### Guess/Answer Example
-Here is an actual play through the game on November 19, 2022
 ```
-NOTE: Actual Trys #2-x will be different depending on the Wordle-of-the-day
+NOTE: Actual Trys #(2-x) will be different depending on the Wordle-of-the-day
 ```
 
 #### Try #1
@@ -205,21 +355,21 @@ Enter `roate` into the Wordle UI, and we get:
 #### Try #2
 Now we take the feedback from the Wordle UI and code it into the answer (`-a`) using the argument value from above:
 ```
-'=' for matching characters, '-' for matching characters that are in the wrong location, 'X' for non-matching characters.
+'=' for matching characters, '-' for matching characters that are in the wrong location, 'x' for non-matching characters.
 ```
 and we get:
 ```
--a -X---
+-a -x---
 ```
 and we have the following Input:
 ```
-./wordtl -p ----- -g roate -a -X---
+./wordtl -p ----- -g roate -a -x---
 ```
 Output:
 ```
 Word length: 5
 Guess:  'roate'
-Answer: '-X---'
+Answer: '-x---'
 Word pattern: '-----'
 Wild Card letters: ''
 Excluded letters: ''
@@ -252,13 +402,13 @@ Enter `fleck` into the Wordle UI, and we get:
 Repeat until a solution is arrived at as follows:
 ``` 
 # Try #3
-./wordtl -p -a-er -x ot -g fleck -a XX=XX
+./wordtl -p -a-er -x ot -g fleck -a xx=xx
 
 Try:
 ./wordtl -p --e-- -w rate -1 r -3 a -4 t -5 e -x oflck -g gived 
 
 # Try #4
-./wordtl -p --e-- -w rate -1 r -3 a -4 t -5 e -x oflck -g gived -a XX--X
+./wordtl -p --e-- -w rate -1 r -3 a -4 t -5 e -x oflck -g gived -a xx--x
 
 Try:
 ./wordtl -p --e-- -w ratev -1 r -3 av -4 te -5 e -x oflckgid -g avert 
@@ -276,7 +426,7 @@ and then we have success!
 Run `build-all` to build all executables and run unit tests.
 
 ### Golang Version
-This code was compiled with `go version go1.16.2 darwin/amd64`. Run `go version` to see what you are using.
+This code was compiled with `go version go1.19.4 darwin/amd64`. Run `go version` to see what you are using.
 
 ### Compile the Code and Build Executables
 
