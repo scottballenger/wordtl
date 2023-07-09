@@ -162,13 +162,13 @@ The following nomenclature are used to mimic the results from the Wordle UI:
 
 So, in the case of `ROATE` input we would create an answer string of `-x---`, and for `FLECK` we would answer `xx=xx` to indicate the response from the Wordle UI.
 
-In the case of `ROATE` and `-x---`, `wordtl` will give the following feedback to ensure that your `answer` is correct:
+In the case of `ROATE` and `-x---`, `wordtl` will give the following feedback to ensure that your `answer` matches the Wordle UI:
 
 ![wordtl.1 using roate](./screenshots/wordtl.1.png)
 
 You want to make sure the color/letter combinations match what is displayed in the Wordle UI above.
 
-This is the primary feedback for `wordtl` to help you fugure out your next guess.
+This is the primary feedback for `wordtl` to help you figure out your next guess.
 
 ### Play Along with Wordle UI
 In this example, we take the recommended guess from `wordtl` by accepting the default `guess` for each turn.

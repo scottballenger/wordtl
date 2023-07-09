@@ -473,10 +473,19 @@ func printWordleResult(guess string, answer string) bool {
 	return correctForm
 }
 
-func printWordleSolution(guesses [MaxTries]string, answers [MaxTries]string, numTries int) {
-	fmt.Println()
-	fmt.Println("Congratulations, you have found the solution word in " + fmt.Sprintf("%d", numTries+1) + " turns!")
-	fmt.Println()
+func printWordleSolution(guesses [MaxTries]string, answers [MaxTries]string, numTries int, foundSolution bool) {
+	if foundSolution {
+		fmt.Println()
+		fmt.Println("Congratulations, you have found the solution word in " + fmt.Sprintf("%d", numTries+1) + " turns!")
+		fmt.Println()
+	} else {
+		if numTries+1 > 1 {
+			fmt.Println()
+			fmt.Println("Result after " + fmt.Sprintf("%d", numTries+1) + " guesses:")
+		} else {
+			return
+		}
+	}
 	for i := 0; i <= numTries; i++ {
 		printWordleResult(guesses[i], answers[i])
 		fmt.Println()
@@ -497,6 +506,11 @@ func isAnswerCorrect(answer string, validlength int) bool {
 func main() {
 	solutionWords, allWords, guess, answer := initialize()
 
+	const (
+		yes = "y"
+		no  = "n"
+	)
+
 	if !DoAutoPlay {
 		WordPattern, WildcardLetters, ExcludedLetters, NoParkDisSpace = words.TranslateGuessResults(guess, answer, WordPattern, ExcludedLetters, WildcardLetters, NoParkDisSpace)
 		matchingWords, eliminationWords, bestEliminationWords := getWordSolutions(solutionWords, allWords)
@@ -509,6 +523,14 @@ func main() {
 		for try := 0; try < MaxTries; try++ {
 			WordPattern, WildcardLetters, ExcludedLetters, NoParkDisSpace = words.TranslateGuessResults(guess, answer, WordPattern, ExcludedLetters, WildcardLetters, NoParkDisSpace)
 			matchingWords, eliminationWords, bestEliminationWords := getWordSolutions(solutionWords, allWords)
+			if (len(matchingWords) == 0) && (len(solutionWords) != len(allWords)) {
+				fmt.Println()
+				useAllWords := getUserInput(yes, "No matching words found in Solution Words. Do you want to search All Words?", yes+no, yes+" or "+no, "", 1)
+				if useAllWords == yes {
+					solutionWords = allWords
+					matchingWords, eliminationWords, bestEliminationWords = getWordSolutions(solutionWords, allWords)
+				}
+			}
 			guess = getBestGuess(matchingWords, eliminationWords, bestEliminationWords)
 
 			fmt.Println()
@@ -524,10 +546,6 @@ func main() {
 				correctForm := printWordleResult(userGuess, userAnswer)
 				fmt.Println()
 
-				const (
-					yes = "y"
-					no  = "n"
-				)
 				if correctForm {
 					correct := getUserInput(yes, "Is this correct?", yes+no, yes+" or "+no, "", 1)
 					if correct == yes {
@@ -540,8 +558,9 @@ func main() {
 
 			guesses[try] = guess
 			answers[try] = answer
-			if isAnswerCorrect(answer, WordLength) {
-				printWordleSolution(guesses, answers, try)
+			foundSolution := isAnswerCorrect(answer, WordLength)
+			printWordleSolution(guesses, answers, try, foundSolution)
+			if foundSolution {
 				break
 			}
 		}
