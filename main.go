@@ -8,6 +8,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"time"
 	"wordtl/words"
 
 	"github.com/gookit/color"
@@ -46,6 +47,9 @@ var (
 	BibleWordle     = false
 	DoBibleWordle   = false
 	DoAutoPlay      = false
+	TodaysDay       = 1
+	UsedWords       map[string]bool
+	UsedWordsFile   = "words/wordle_words_used.txt"
 )
 
 func parseFlags() {
@@ -126,25 +130,59 @@ func initialize() ([]string, []string, string, string) {
 	DoBibleWordle = BibleWordle && DoWordle
 
 	if DoWordle {
+		startDate := words.WordleStartDate
+		maxWordleDay := len(words.WordleSolutionWords)
 		if DoBibleWordle {
 			WordleTitle = "Bible " + WordleTitle
+			startDate = words.BibleWordleStartDate
+			maxWordleDay = len(words.BibleWordleSolutionWords)
 		}
+
+		timeFormat := "2006-01-02"
+		t, _ := time.Parse(timeFormat, startDate)
+		year, month, day := time.Now().Date()
+		todaysDate := fmt.Sprintf("%d-%02d-%02d", year, int(month), day)
+		now, _ := time.Parse(timeFormat, todaysDate)
+		TodaysDay = int(now.Sub(t).Hours() / 24)
+
+		fmt.Printf("Todays %s Day: %d\n", WordleTitle, TodaysDay)
 		fmt.Printf("Using built-in %s words.\n", WordleTitle)
 
+		// Eliminate solution words before today.
 		solutionWords := []string{}
-		allWords := []string{}
-		if DoBibleWordle {
-			for _, solutionWord := range words.BibleWordleSolutionWords {
-				solutionWords = append(solutionWords, strings.ToLower(solutionWord))
+		if BibleWordle {
+			// BibleWordle already used words are all those before TodaysDay, so solution words follow.
+			for i := TodaysDay; i < maxWordleDay; i++ {
+				solutionWords = append(solutionWords, strings.ToLower(words.GetBibleWordle(i)))
 			}
-			allWords = append(allWords, words.BibleWordleSolutionWords...)
-			allWords = append(allWords, words.BibleWordleSearchWords...)
 		} else {
-			for _, solutionWord := range words.WordleSolutionWords {
-				solutionWords = append(solutionWords, strings.ToLower(solutionWord))
+			// Wordle already used words are contained in a separate file. Remove them from solution words.
+			f, err := os.Open(UsedWordsFile)
+			if err != nil {
+				log.Println(err)
+			} else {
+				defer f.Close()
+				scanner := bufio.NewScanner(f)
+				for scanner.Scan() {
+					word := strings.ToLower(scanner.Text())
+					if len(word) == WordLength {
+						UsedWords[word] = true
+					}
+				}
 			}
-			allWords = append(allWords, words.WordleSolutionWords...)
-			allWords = append(allWords, words.WordleSearchWords...)
+
+			// Remove the used words from the solution words.
+			for _, word := range words.WordleSolutionWords {
+				word = strings.ToLower(word)
+				if !UsedWords[word] {
+					solutionWords = append(solutionWords, word)
+				}
+			}
+		}
+
+		allWords := append(words.WordleSolutionWords, words.WordleSearchWords...)
+		if DoBibleWordle {
+			allWords = append(words.BibleWordleSolutionWords, words.BibleWordleSearchWords...)
 		}
 
 		// Remove duplicates in all words.
@@ -504,6 +542,7 @@ func isAnswerCorrect(answer string, validlength int) bool {
 }
 
 func main() {
+	UsedWords = make(map[string]bool)
 	solutionWords, allWords, guess, answer := initialize()
 
 	const (
@@ -561,6 +600,24 @@ func main() {
 			foundSolution := isAnswerCorrect(answer, WordLength)
 			printWordleSolution(guesses, answers, try, foundSolution)
 			if foundSolution {
+				if DoWordle && !DoBibleWordle {
+					if !UsedWords[answer] {
+						addUsedWord := getUserInput(yes, "Would you like to add '"+guess+"' to the list of already used words?", yes+no, yes+" or "+no, "", 1)
+						if addUsedWord == yes {
+							f, err := os.OpenFile(UsedWordsFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+							if err != nil {
+								log.Println(err)
+							} else {
+								defer f.Close()
+								newUsedWord := "\n" + guess
+								_, err = f.WriteString(newUsedWord)
+								if err != nil {
+									log.Println(err)
+								}
+							}
+						}
+					}
+				}
 				break
 			}
 		}
