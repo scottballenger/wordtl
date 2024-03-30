@@ -1,6 +1,7 @@
 package words
 
 import (
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -129,6 +130,75 @@ func Test_getMatchingWords(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := GetMatchingWords(tt.args.words, tt.args.wordPattern, tt.args.excludedLetters, tt.args.wildcardLetters, tt.args.matchAllWildcardLetters, tt.args.noParkDisSpace); strings.TrimSpace(strings.Join(got, "")) != strings.TrimSpace(strings.Join(tt.want, "")) {
 				t.Errorf("getMatchingWords() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestTranslateGuessResults(t *testing.T) {
+	type args struct {
+		guess           string
+		results         string
+		wordPattern     string
+		excludedLetters string
+		wildcardLetters string
+		noParkDisSpace  [MaxLetters]string
+	}
+	tests := []struct {
+		name                string
+		args                args
+		wantWordPattern     string
+		wantWildcardLetters string
+		wantExcludedLetters string
+		wantNoParkDisSpace  [MaxLetters]string
+	}{
+		{
+			name:                "Match All",
+			args:                args{guess: "abcde", results: "=====", wordPattern: "-----", excludedLetters: "", wildcardLetters: "", noParkDisSpace: [MaxLetters]string{""}},
+			wantWordPattern:     "abcde",
+			wantWildcardLetters: "",
+			wantExcludedLetters: "",
+			wantNoParkDisSpace:  [MaxLetters]string{""},
+		},
+		{
+			name:                "Match Some, Others In Wrong Position",
+			args:                args{guess: "abcde", results: "-===-", wordPattern: "-----", excludedLetters: "", wildcardLetters: "", noParkDisSpace: [MaxLetters]string{""}},
+			wantWordPattern:     "-bcd-",
+			wantWildcardLetters: "ae",
+			wantExcludedLetters: "",
+			wantNoParkDisSpace:  [MaxLetters]string{"a", "", "", "", "e"},
+		},
+		{
+			name:                "Repeating Letter Matching Earlier In Word",
+			args:                args{guess: "chick", results: "===xx", wordPattern: "--i--", excludedLetters: "", wildcardLetters: "", noParkDisSpace: [MaxLetters]string{""}},
+			wantWordPattern:     "chi--",
+			wantWildcardLetters: "",
+			wantExcludedLetters: "k",
+			wantNoParkDisSpace:  [MaxLetters]string{"", "", "", "c"},
+		},
+		{
+			name:                "Repeating Letter Matching Later In Word",
+			args:                args{guess: "chick", results: "x===x", wordPattern: "--i--", excludedLetters: "", wildcardLetters: "", noParkDisSpace: [MaxLetters]string{""}},
+			wantWordPattern:     "-hic-",
+			wantWildcardLetters: "",
+			wantExcludedLetters: "k",
+			wantNoParkDisSpace:  [MaxLetters]string{"c"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotWordPattern, gotWildcardLetters, gotExcludedLetters, gotNoParkDisSpace := TranslateGuessResults(tt.args.guess, tt.args.results, tt.args.wordPattern, tt.args.excludedLetters, tt.args.wildcardLetters, tt.args.noParkDisSpace)
+			if gotWordPattern != tt.wantWordPattern {
+				t.Errorf("TranslateGuessResults() gotWordPattern = %v, want %v", gotWordPattern, tt.wantWordPattern)
+			}
+			if gotWildcardLetters != tt.wantWildcardLetters {
+				t.Errorf("TranslateGuessResults() gotWildcardLetters = %v, want %v", gotWildcardLetters, tt.wantWildcardLetters)
+			}
+			if gotExcludedLetters != tt.wantExcludedLetters {
+				t.Errorf("TranslateGuessResults() gotExcludedLetters = %v, want %v", gotExcludedLetters, tt.wantExcludedLetters)
+			}
+			if !reflect.DeepEqual(gotNoParkDisSpace, tt.wantNoParkDisSpace) {
+				t.Errorf("TranslateGuessResults() gotNoParkDisSpace = %v, want %v", gotNoParkDisSpace, tt.wantNoParkDisSpace)
 			}
 		})
 	}

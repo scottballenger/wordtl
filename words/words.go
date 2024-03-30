@@ -164,7 +164,7 @@ func GetBestEliminationWords(words []string, eliminationWords []string, wordLeng
 	}
 
 	lastLetters := ""
-	for _, letter := range eliminationLetters {
+	for index, letter := range eliminationLetters {
 		remainingWords := []string{}
 		// fmt.Print("letter:", string(letter), "\n")
 
@@ -172,6 +172,14 @@ func GetBestEliminationWords(words []string, eliminationWords []string, wordLeng
 		if strings.Contains(lastLetters, string(letter)) {
 			// fmt.Print("\tskipping:", string(letter), "\n")
 			continue
+		}
+
+		if index >= wordLength {
+			if len(bestEliminationWords) > 0 {
+				// Found enough letters.
+				// fmt.Println("Searched ", index, "letters. Stopping.")
+				break
+			}
 		}
 
 		// Check for other letters with the same letter count.
@@ -380,7 +388,14 @@ func TranslateGuessResults(
 				}
 			case MissedChar:
 				// Can be another instance of an exsiting letter.
-				if !strings.Contains(wordPattern, guessLetter) && !strings.Contains(wildcardLetters, guessLetter) {
+				matchLater := false
+				for j := i + 1; j < len(results); j++ {
+					if string(guess[j]) == guessLetter && (string(results[j]) == MatchedChar || string(results[j]) == WildcardChar) {
+						matchLater = true
+						break
+					}
+				}
+				if !matchLater && !strings.Contains(wordPattern, guessLetter) && !strings.Contains(wildcardLetters, guessLetter) {
 					if !strings.Contains(excludedLetters, guessLetter) {
 						excludedLetters += guessLetter
 					}
