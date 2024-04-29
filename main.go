@@ -16,7 +16,6 @@ import (
 
 const (
 	AnswerFlag          = "a"
-	BibleWordleFlag     = "b"
 	WordFileFlag        = "f"
 	GuessFlag           = "g"
 	WordLengthFlag      = "l"
@@ -44,8 +43,6 @@ var (
 	Answer          = ""
 	WordleTitle     = "Wordle"
 	DoWordle        = true
-	BibleWordle     = false
-	DoBibleWordle   = false
 	DoAutoPlay      = false
 	TodaysDay       = 1
 	UsedWords       map[string]bool
@@ -60,13 +57,12 @@ func parseFlags() {
 	wildcardHelp := "Wildcard Letters: Letters that must appear in any position where there is a wildecard placeholder '" + words.WildcardChar + "'. Example value of 'r' means that there must be at least 1 'r' in any place where there is a '" + words.WildcardChar + "' in the -" + WordPatternFlag + " flag."
 	flag.StringVar(&WildcardLetters, WildcardFlag, WildcardLetters, wildcardHelp)
 	flag.StringVar(&ExcludedLetters, ExcludedFlag, ExcludedLetters, "Excluded Letters: Letters that cannot appear in the word. Example value of 'ies' means that 'i', 'e', or 's' cannot appear anywhere in the word.")
-	wordFileHelp := "OPTIONAL Word File: Name/Path of ASCII text file containing one word per line. Will use the Wordle list from https://www.nytimes.com/games/wordle/index.html (or https://www.thelivingwordle.com if -" + BibleWordleFlag + " is specified) if this flag is not specified."
+	wordFileHelp := "OPTIONAL Word File: Name/Path of ASCII text file containing one word per line. Will use the Wordle list from https://www.nytimes.com/games/wordle/index.html if this flag is not specified."
 	flag.StringVar(&WordFile, WordFileFlag, WordFile, wordFileHelp)
 	for disSpace := 0; disSpace < words.MaxLetters; disSpace++ {
 		noParkDisSpaceHelp := "Letters that don't belong in this position: Letters that appear in the word, but not in postion #" + fmt.Sprintf("%d", disSpace+1) + " Example value of '-" + fmt.Sprintf("%d", disSpace+1) + " ies' means that 'i', 'e', or 's' cannot appear in position #" + fmt.Sprintf("%d", disSpace+1) + "."
 		flag.StringVar(&NoParkDisSpace[disSpace], fmt.Sprintf("%d", disSpace+1), NoParkDisSpace[disSpace], noParkDisSpaceHelp)
 	}
-	flag.BoolVar(&BibleWordle, BibleWordleFlag, BibleWordle, "Use Bible Wordle words from https://www.thelivingwordle.com.")
 	flag.BoolVar(&PrintStatistics, StatisticsFlag, PrintStatistics, "Print statistics of letter distribution for each letter position.")
 	guessHelp := "Guess: This is your guess. Please include an Answer (-" + AnswerFlag + ") to filter the next guess. REQUIRED if -" + AnswerFlag + " is included."
 	flag.StringVar(&Guess, GuessFlag, Guess, guessHelp)
@@ -127,17 +123,9 @@ func initialize() ([]string, []string, string, string) {
 	}
 
 	DoWordle = (WordLength == words.WordleLength) && (WordFile == "")
-	DoBibleWordle = BibleWordle && DoWordle
 
 	if DoWordle {
 		startDate := words.WordleStartDate
-		maxWordleDay := len(words.WordleSolutionWords)
-		if DoBibleWordle {
-			WordleTitle = "Bible " + WordleTitle
-			startDate = words.BibleWordleStartDate
-			maxWordleDay = len(words.BibleWordleSolutionWords)
-		}
-
 		timeFormat := "2006-01-02"
 		t, _ := time.Parse(timeFormat, startDate)
 		year, month, day := time.Now().Date()
@@ -150,40 +138,30 @@ func initialize() ([]string, []string, string, string) {
 
 		// Eliminate solution words before today.
 		solutionWords := []string{}
-		if BibleWordle {
-			// BibleWordle already used words are all those before TodaysDay, so solution words follow.
-			for i := TodaysDay; i < maxWordleDay; i++ {
-				solutionWords = append(solutionWords, strings.ToLower(words.GetBibleWordle(i)))
-			}
+		// Wordle already used words are contained in a separate file. Remove them from solution words.
+		f, err := os.Open(UsedWordsFile)
+		if err != nil {
+			log.Println(err)
 		} else {
-			// Wordle already used words are contained in a separate file. Remove them from solution words.
-			f, err := os.Open(UsedWordsFile)
-			if err != nil {
-				log.Println(err)
-			} else {
-				defer f.Close()
-				scanner := bufio.NewScanner(f)
-				for scanner.Scan() {
-					word := strings.ToLower(scanner.Text())
-					if len(word) == WordLength {
-						UsedWords[word] = true
-					}
+			defer f.Close()
+			scanner := bufio.NewScanner(f)
+			for scanner.Scan() {
+				word := strings.ToLower(scanner.Text())
+				if len(word) == WordLength {
+					UsedWords[word] = true
 				}
 			}
+		}
 
-			// Remove the used words from the solution words.
-			for _, word := range words.WordleSolutionWords {
-				word = strings.ToLower(word)
-				if !UsedWords[word] {
-					solutionWords = append(solutionWords, word)
-				}
+		// Remove the used words from the solution words.
+		for _, word := range words.WordleSolutionWords {
+			word = strings.ToLower(word)
+			if !UsedWords[word] {
+				solutionWords = append(solutionWords, word)
 			}
 		}
 
 		allWords := append(words.WordleSolutionWords, words.WordleSearchWords...)
-		if DoBibleWordle {
-			allWords = append(words.BibleWordleSolutionWords, words.BibleWordleSearchWords...)
-		}
 
 		// Remove duplicates in all words.
 		updatedWords := []string{}
@@ -374,11 +352,6 @@ func printNextGuess(
 		}
 	}
 
-	bibleWordleArgs := ""
-	if DoWordle && DoBibleWordle {
-		bibleWordleArgs = "-" + BibleWordleFlag + " "
-	}
-
 	wordPatternArgs := ""
 	if len(wordPattern) > 0 {
 		wordPatternArgs = "-" + WordPatternFlag + " " + wordPattern + " "
@@ -409,7 +382,7 @@ func printNextGuess(
 		wordFileArg = "-" + WordFileFlag + " " + WordFile + " "
 	}
 
-	fmt.Printf("\nTry:\n%s %s%s%s%s%s%s%s%s\n", os.Args[0], bibleWordleArgs, wordFileArg, wordLengthArg, wordPatternArgs, wildcardLettersArgs, noParkDeesSpaces, excludedLettersArgs, guessArgs)
+	fmt.Printf("\nTry:\n%s %s%s%s%s%s%s%s\n", os.Args[0], wordFileArg, wordLengthArg, wordPatternArgs, wildcardLettersArgs, noParkDeesSpaces, excludedLettersArgs, guessArgs)
 }
 
 func getUserInputRange(defaultVal string, valName string, startChar string, endChar string, validCharsMsg string, validCharsHelp string, validLength int) string {
@@ -600,7 +573,7 @@ func main() {
 			foundSolution := isAnswerCorrect(answer, WordLength)
 			printWordleSolution(guesses, answers, try, foundSolution)
 			if foundSolution {
-				if DoWordle && !DoBibleWordle {
+				if DoWordle {
 					if !UsedWords[answer] {
 						addUsedWord := getUserInput(yes, "Would you like to add '"+guess+"' to the list of already used words?", yes+no, yes+" or "+no, "", 1)
 						if addUsedWord == yes {
