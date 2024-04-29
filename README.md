@@ -426,7 +426,7 @@ and then we have success!
 Run `build-all` to build all executables and run unit tests.
 
 ### Golang Version
-This code was compiled with `go version go1.19.4 darwin/amd64`. Run `go version` to see what you are using.
+This code was compiled with `go version go1.22.1 darwin/amd64`. Run `go version` to see what you are using.
 
 ### Compile the Code and Build Executables
 
