@@ -8,13 +8,13 @@
 `wordtl` is a powerful search engine that provides answers for finding a word in a dictionary with the same number of letters.
 
 ### 1. TLDR; Just Play Wordle - Play Along Mode!
-Here's a [quickstart to get you going with Wordle using `auto` subcommand](#tldr-just-play-wordle) in `wordtl` play-along mode that will walk you through a game of Wordle and help you with the next guess.
+Here's a [quickstart to get you going with Wordle using the `auto` subcommand](#tldr-just-play-wordle) in `wordtl` play-along mode that will walk you through a game of Wordle and help you with the next guess.
 
 ### 2. Guess and Result to Create Search Patterns
-[Enter Guesses and Results one at a time using `manual` subcommand](#generate-search-terms-from-guess-and-result) is an example of how to use `wordtl` to simplify in the process of creating search patterns.
+[Enter Guesses and Results one at a time using the `manual` subcommand](#generate-search-terms-from-guess-and-result) is an example of how to use `wordtl` to simplify in the process of creating search patterns.
 
 ### 3. Search Patterns
-[Invoke `wordtl` with search parameters using `search` subcommand](#search-example) to help you find a list of words that meet your criteria. For example:
+[Invoke `wordtl` with search parameters using the `search` subcommand](#search-example) to help you find a list of words that meet your criteria. For example:
 - What is a list of 5 letter words that have:
   - "T" as the first letter, and
   - "R" is not in postion 2,
@@ -79,6 +79,9 @@ Available subcommands:
    help     Print subcommand help message
 
 For specific subcommand flags, enter './wordtl subcommmand -h'
+
+Also see https://github.com/scottballenger/wordtl/blob/main/README.md for a
+detailed description.
 
 ```
 #### Global Flags
@@ -172,10 +175,10 @@ If you just want to play Wordle and get all of the advantages of `wordtl` right 
 This will allow you to enter guesses in the Wordle UI, and come up withthe next guess based on the remaining words. Here's an example when the solution was `AVERT`
 
 ### `Wordle` Solution Words
-`Wordle` allows many words when geussing `Today's Wordle` - we will call this set of words `all-words`. `Wordle` has curated a subset of all-words that can be `Today's Wordle` - we will call the set of words `solution-words`. Here's the differences:
+`Wordle` allows many words when geussing (entering a value in the UI) `Today's Wordle` - we will call this set of words `all-words`. `Wordle` has curated a subset of `all-words` that can be `Today's Wordle` - we will call this set of words `solution-words`. Here's the differences:
 - `all-words` - Most 5 letter scrabble words from something like `CSW21.txt` or `CSW22.txt` as described in https://www.cocoscrabble.org/lexicon. 
-  - This consists of approximately 15,000 words that can be used to `manual` in `Wordle` and eliminate as many words as possible.
-  - Most of these are uncommon words that you never really use - but they are legal words for making a `manual`.
+  - This consists of approximately 15,000 words that can be used to `guess` in `Wordle` and eliminate as many words as possible.
+  - Most of these are uncommon words that you never really use - but they are legal words for making a `guess`.
 - `solution-words` - Curated subset of `all-words` that the `Wordle` team has chosen as the actual `Today's Wordle` answer.
   - This consists of approximately 2,300 words that are the actual answer for `Today's Wordle`.
   - The `default` mode for `wordtl` is to ONLY use the `solution-words` as the final answer. 
@@ -218,7 +221,7 @@ You want to make sure the color/letter combinations match what is displayed in t
 This is the primary feedback for `wordtl` to help you figure out your next guess.
 
 ### Play Along with Wordle UI
-In this example, we take the recommended guess from `wordtl` by accepting the default `manual` for each turn.
+In this example, we take the recommended guess from `wordtl` by accepting the default `guess` for each turn.
 
 For more details on the information printed out by `wordtl`, please see [Interpreting the Output](#interpreting-the-output).
 
@@ -358,7 +361,8 @@ is equivilant to manually entering
 ```
 ### Guess/Result Example
 ```
-NOTE: The `-ignore-wordle-used-words` flag has been specified in this example to produce consistent results.
+NOTE: The `-ignore-wordle-used-words` flag has been specified in this example
+to produce consistent results.
 ```
 
 #### Try #1
@@ -425,7 +429,9 @@ Enter `roate` into the Wordle UI, and we get:
 #### Try #2
 Now we take the feedback from the Wordle UI and code it into the result (`-guess-result`) using the argument value from above:
 ```
-'=' for [green] matching characters, '-' for [yellow] matching characters that are in the wrong location, 'x' for [gray] non-matching characters.
+'=' for <green> matching characters, 
+'-' for <yellow> matching characters that are in the wrong location, 
+'x' for <gray> non-matching characters.
 ```
 and we get:
 ```
