@@ -1044,3 +1044,14 @@ vapid
 gleam
 prune
 craft
+prowl
+diary
+slice
+ebony
+value
+decal
+shave
+musty
+pious
+jerky
+media

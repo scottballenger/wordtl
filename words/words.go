@@ -10,7 +10,6 @@ const (
 	WildcardChar = "-"
 	MatchedChar  = "="
 	MissedChar   = "x"
-	MaxLetters   = 9
 )
 
 func WordMatch(
@@ -19,7 +18,7 @@ func WordMatch(
 	excludedLetters string,
 	wildcardLetters string,
 	matchAllWildcardLetters bool,
-	noParkDisSpace [MaxLetters]string) bool {
+	excludedByPosMap map[int]string) bool {
 
 	// filter length.
 	if len(word) != len(wordPattern) {
@@ -62,12 +61,10 @@ func WordMatch(
 		case string(letter):
 			continue
 		case WildcardChar:
-			if i < MaxLetters {
-				if len(noParkDisSpace[i]) > 0 {
-					// Remove letters that can't be in a specific position.
-					if strings.Contains(noParkDisSpace[i], string(letter)) {
-						return false
-					}
+			if len(excludedByPosMap[i+1]) > 0 {
+				// Remove letters that can't be in a specific position.
+				if strings.Contains(excludedByPosMap[i+1], string(letter)) {
+					return false
 				}
 			}
 			continue
@@ -84,12 +81,12 @@ func GetMatchingWords(
 	excludedLetters string,
 	wildcardLetters string,
 	matchAllWildcardLetters bool,
-	noParkDisSpace [MaxLetters]string) []string {
+	excludedByPosMap map[int]string) []string {
 
 	var matchingWords []string
 
 	for _, word := range words {
-		if WordMatch(word, wordPattern, excludedLetters, wildcardLetters, matchAllWildcardLetters, noParkDisSpace) {
+		if WordMatch(word, wordPattern, excludedLetters, wildcardLetters, matchAllWildcardLetters, excludedByPosMap) {
 			matchingWords = append(matchingWords, word)
 		}
 	}
@@ -150,11 +147,11 @@ func GetEliminationWords(
 	wordLength int,
 	excludedLetters string,
 	wildcardLetters string,
-	noParkDisSpace [MaxLetters]string) []string {
+	excludedByPosMap map[int]string) []string {
 
 	fmt.Printf("\nTrying elimination letters: '%s'\n", eliminationLetters)
 
-	return GetMatchingWords(words, strings.Repeat(WildcardChar, wordLength), "", eliminationLetters, false, [MaxLetters]string{})
+	return GetMatchingWords(words, strings.Repeat(WildcardChar, wordLength), "", eliminationLetters, false, map[int]string{})
 }
 
 func GetBestEliminationWords(words []string, eliminationWords []string, wordLength int, eliminationLetters string, letterCounts map[string]int, letterDistribution []map[string]int) []string {
@@ -369,7 +366,7 @@ func TranslateGuessResults(
 	wordPattern string,
 	excludedLetters string,
 	wildcardLetters string,
-	noParkDisSpace [MaxLetters]string) (string, string, string, [MaxLetters]string) {
+	excludedByPosMap map[int]string) (string, string, string, map[int]string) {
 
 	if len(guess) == len(results) {
 		for i := range results {
@@ -381,10 +378,8 @@ func TranslateGuessResults(
 				if !strings.Contains(wildcardLetters, guessLetter) {
 					wildcardLetters += guessLetter
 				}
-				if i < MaxLetters {
-					if !strings.Contains(noParkDisSpace[i], guessLetter) {
-						noParkDisSpace[i] += guessLetter
-					}
+				if !strings.Contains(excludedByPosMap[i+1], guessLetter) {
+					excludedByPosMap[i+1] += guessLetter
 				}
 			case MissedChar:
 				// Can be another instance of an exsiting letter.
@@ -400,14 +395,12 @@ func TranslateGuessResults(
 						excludedLetters += guessLetter
 					}
 				} else {
-					if i < MaxLetters {
-						if !strings.Contains(noParkDisSpace[i], guessLetter) {
-							noParkDisSpace[i] += guessLetter
-						}
+					if !strings.Contains(excludedByPosMap[i+1], guessLetter) {
+						excludedByPosMap[i+1] += guessLetter
 					}
 				}
 			}
 		}
 	}
-	return wordPattern, wildcardLetters, excludedLetters, noParkDisSpace
+	return wordPattern, wildcardLetters, excludedLetters, excludedByPosMap
 }

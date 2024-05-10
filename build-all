@@ -1,4 +1,4 @@
 date
 go test ./...
-go build
+GOOS=darwin go build
 GOOS=windows go build

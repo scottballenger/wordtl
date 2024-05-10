@@ -13,7 +13,7 @@ func Test_wordMatch(t *testing.T) {
 		excludedLetters         string
 		wildcardLetters         string
 		matchAllWildcardLetters bool
-		noParkDisSpace          [MaxLetters]string
+		excludedByPosMap        map[int]string
 	}
 	tests := []struct {
 		name string
@@ -63,13 +63,13 @@ func Test_wordMatch(t *testing.T) {
 		{
 			name: "Wildcard Match, but can't be in current position",
 			args: args{word: "abcde", wordPattern: "-----", wildcardLetters: "abcde", matchAllWildcardLetters: true,
-				noParkDisSpace: [MaxLetters]string{"", "b"}},
+				excludedByPosMap: map[int]string{2: "b"}},
 			want: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := WordMatch(tt.args.word, tt.args.wordPattern, tt.args.excludedLetters, tt.args.wildcardLetters, tt.args.matchAllWildcardLetters, tt.args.noParkDisSpace); got != tt.want {
+			if got := WordMatch(tt.args.word, tt.args.wordPattern, tt.args.excludedLetters, tt.args.wildcardLetters, tt.args.matchAllWildcardLetters, tt.args.excludedByPosMap); got != tt.want {
 				t.Errorf("wordMatch() = %v, want %v", got, tt.want)
 			}
 		})
@@ -83,7 +83,7 @@ func Test_getMatchingWords(t *testing.T) {
 		excludedLetters         string
 		wildcardLetters         string
 		matchAllWildcardLetters bool
-		noParkDisSpace          [MaxLetters]string
+		excludedByPosMap        map[int]string
 	}
 	tests := []struct {
 		name string
@@ -128,7 +128,7 @@ func Test_getMatchingWords(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := GetMatchingWords(tt.args.words, tt.args.wordPattern, tt.args.excludedLetters, tt.args.wildcardLetters, tt.args.matchAllWildcardLetters, tt.args.noParkDisSpace); strings.TrimSpace(strings.Join(got, "")) != strings.TrimSpace(strings.Join(tt.want, "")) {
+			if got := GetMatchingWords(tt.args.words, tt.args.wordPattern, tt.args.excludedLetters, tt.args.wildcardLetters, tt.args.matchAllWildcardLetters, tt.args.excludedByPosMap); strings.TrimSpace(strings.Join(got, "")) != strings.TrimSpace(strings.Join(tt.want, "")) {
 				t.Errorf("getMatchingWords() = %v, want %v", got, tt.want)
 			}
 		})
@@ -137,57 +137,57 @@ func Test_getMatchingWords(t *testing.T) {
 
 func TestTranslateGuessResults(t *testing.T) {
 	type args struct {
-		guess           string
-		results         string
-		wordPattern     string
-		excludedLetters string
-		wildcardLetters string
-		noParkDisSpace  [MaxLetters]string
+		guess            string
+		results          string
+		wordPattern      string
+		excludedLetters  string
+		wildcardLetters  string
+		excludedByPosMap map[int]string
 	}
 	tests := []struct {
-		name                string
-		args                args
-		wantWordPattern     string
-		wantWildcardLetters string
-		wantExcludedLetters string
-		wantNoParkDisSpace  [MaxLetters]string
+		name                 string
+		args                 args
+		wantWordPattern      string
+		wantWildcardLetters  string
+		wantExcludedLetters  string
+		wantExcludedByPosMap map[int]string
 	}{
 		{
-			name:                "Match All",
-			args:                args{guess: "abcde", results: "=====", wordPattern: "-----", excludedLetters: "", wildcardLetters: "", noParkDisSpace: [MaxLetters]string{""}},
-			wantWordPattern:     "abcde",
-			wantWildcardLetters: "",
-			wantExcludedLetters: "",
-			wantNoParkDisSpace:  [MaxLetters]string{""},
+			name:                 "Match All",
+			args:                 args{guess: "abcde", results: "=====", wordPattern: "-----", excludedLetters: "", wildcardLetters: "", excludedByPosMap: map[int]string{}},
+			wantWordPattern:      "abcde",
+			wantWildcardLetters:  "",
+			wantExcludedLetters:  "",
+			wantExcludedByPosMap: map[int]string{},
 		},
 		{
-			name:                "Match Some, Others In Wrong Position",
-			args:                args{guess: "abcde", results: "-===-", wordPattern: "-----", excludedLetters: "", wildcardLetters: "", noParkDisSpace: [MaxLetters]string{""}},
-			wantWordPattern:     "-bcd-",
-			wantWildcardLetters: "ae",
-			wantExcludedLetters: "",
-			wantNoParkDisSpace:  [MaxLetters]string{"a", "", "", "", "e"},
+			name:                 "Match Some, Others In Wrong Position",
+			args:                 args{guess: "abcde", results: "-===-", wordPattern: "-----", excludedLetters: "", wildcardLetters: "", excludedByPosMap: map[int]string{}},
+			wantWordPattern:      "-bcd-",
+			wantWildcardLetters:  "ae",
+			wantExcludedLetters:  "",
+			wantExcludedByPosMap: map[int]string{1: "a", 5: "e"},
 		},
 		{
-			name:                "Repeating Letter Matching Earlier In Word",
-			args:                args{guess: "chick", results: "===xx", wordPattern: "--i--", excludedLetters: "", wildcardLetters: "", noParkDisSpace: [MaxLetters]string{""}},
-			wantWordPattern:     "chi--",
-			wantWildcardLetters: "",
-			wantExcludedLetters: "k",
-			wantNoParkDisSpace:  [MaxLetters]string{"", "", "", "c"},
+			name:                 "Repeating Letter Matching Earlier In Word",
+			args:                 args{guess: "chick", results: "===xx", wordPattern: "--i--", excludedLetters: "", wildcardLetters: "", excludedByPosMap: map[int]string{}},
+			wantWordPattern:      "chi--",
+			wantWildcardLetters:  "",
+			wantExcludedLetters:  "k",
+			wantExcludedByPosMap: map[int]string{4: "c"},
 		},
 		{
-			name:                "Repeating Letter Matching Later In Word",
-			args:                args{guess: "chick", results: "x===x", wordPattern: "--i--", excludedLetters: "", wildcardLetters: "", noParkDisSpace: [MaxLetters]string{""}},
-			wantWordPattern:     "-hic-",
-			wantWildcardLetters: "",
-			wantExcludedLetters: "k",
-			wantNoParkDisSpace:  [MaxLetters]string{"c"},
+			name:                 "Repeating Letter Matching Later In Word",
+			args:                 args{guess: "chick", results: "x===x", wordPattern: "--i--", excludedLetters: "", wildcardLetters: "", excludedByPosMap: map[int]string{}},
+			wantWordPattern:      "-hic-",
+			wantWildcardLetters:  "",
+			wantExcludedLetters:  "k",
+			wantExcludedByPosMap: map[int]string{1: "c"},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotWordPattern, gotWildcardLetters, gotExcludedLetters, gotNoParkDisSpace := TranslateGuessResults(tt.args.guess, tt.args.results, tt.args.wordPattern, tt.args.excludedLetters, tt.args.wildcardLetters, tt.args.noParkDisSpace)
+			gotWordPattern, gotWildcardLetters, gotExcludedLetters, gotExcludedByPosMap := TranslateGuessResults(tt.args.guess, tt.args.results, tt.args.wordPattern, tt.args.excludedLetters, tt.args.wildcardLetters, tt.args.excludedByPosMap)
 			if gotWordPattern != tt.wantWordPattern {
 				t.Errorf("TranslateGuessResults() gotWordPattern = %v, want %v", gotWordPattern, tt.wantWordPattern)
 			}
@@ -197,8 +197,8 @@ func TestTranslateGuessResults(t *testing.T) {
 			if gotExcludedLetters != tt.wantExcludedLetters {
 				t.Errorf("TranslateGuessResults() gotExcludedLetters = %v, want %v", gotExcludedLetters, tt.wantExcludedLetters)
 			}
-			if !reflect.DeepEqual(gotNoParkDisSpace, tt.wantNoParkDisSpace) {
-				t.Errorf("TranslateGuessResults() gotNoParkDisSpace = %v, want %v", gotNoParkDisSpace, tt.wantNoParkDisSpace)
+			if !reflect.DeepEqual(gotExcludedByPosMap, tt.wantExcludedByPosMap) {
+				t.Errorf("TranslateGuessResults() gotExcludedByPosMap = %v, want %v", gotExcludedByPosMap, tt.wantExcludedByPosMap)
 			}
 		})
 	}

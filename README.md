@@ -1,20 +1,20 @@
 # `wordtl`
 
-`wordtl` is a `tool` that helps `anyone` to `solve a Wordle`, `Living Wordle`, or `guess a word from a dictionary`.
+`wordtl` is a `tool` that helps `anyone` to `solve a Wordle`, `guess a word from a dictionary`, or `search a dictionary` .
 
-`wordtl` includes the Wordle lists (5 letter words) from https://www.nytimes.com/games/wordle/index.html and Living Wordle from https://www.thelivingwordle.com that are stored in this repo. Optionally, `wordtl` can read a word file (an ASCII text file with one word per line) to use as its dictionary.
+`wordtl` includes the Wordle list (of 5 letter words) from https://www.nytimes.com/games/wordle/index.html that are stored in this [repo](./words/wordle_words.go). Optionally, `wordtl` can read a word file (an ASCII text file with one word per line) to use as its dictionary. See [Specify Your Own Word List](#specify-your-own-word-list) for more details.
 
 ## Use Cases
 `wordtl` is a powerful search engine that provides answers for finding a word in a dictionary with the same number of letters.
 
-### TLDR; Just Play Wordle or Living Wordle - Play Along Mode!
-Here's a [quickstart to get you going with Wordle](#tldr-just-play-wordle-or-living-wordle) in `wordtl` play-along mode that will walk you through a game of Wordle and help you with the next guess.
+### 1. TLDR; Just Play Wordle - Play Along Mode!
+Here's a [quickstart to get you going with Wordle using `auto` subcommand](#tldr-just-play-wordle) in `wordtl` play-along mode that will walk you through a game of Wordle and help you with the next guess.
 
-### Guess and Answer to Create Search Patterns
-[Enter Guesses and Answers one at a time](#generate-search-terms-from-guess-and-answer) is an example of how to use `wordtl` to simplify in the process of creating search patterns.
+### 2. Guess and Result to Create Search Patterns
+[Enter Guesses and Results one at a time using `manual` subcommand](#generate-search-terms-from-guess-and-result) is an example of how to use `wordtl` to simplify in the process of creating search patterns.
 
-### Search Patterns
-Invoke `wordtl` with search parameters to help you find a list of words that meet your criteria. For example:
+### 3. Search Patterns
+[Invoke `wordtl` with search parameters using `search` subcommand](#search-example) to help you find a list of words that meet your criteria. For example:
 - What is a list of 5 letter words that have:
   - "T" as the first letter, and
   - "R" is not in postion 2,
@@ -24,7 +24,7 @@ Invoke `wordtl` with search parameters to help you find a list of words that mee
 
 Not much here. You can run `wordtl` on `Windows or Mac`.
 
-If you would like to compile, test, and build the code then you will need `Golang` installed.
+If you would like to compile, test, and build the code then you will need `Golang` installed. See [How to Build and Test the Source Code](#buildingtesting-wordtl)
 
 ## Installing `wordtl`
 
@@ -41,9 +41,12 @@ Windows:
 ```
 copy "wordtl.exe" to your machine
 ```
-### Optional Word Lists
-Optionally, `wordtl` can read a word file (an ASCII text file with one word per line) to use as its dictionary. `CSW21.txt` is an example that could be placed in the same directory as `wordtl` (for macOS) or `wordtl.exe` (for Wndows) and then consumed with the `-f` arg. It can be downloaded from https://ia903406.us.archive.org/31/items/csw21/CSW21.txt. 
-- Ensure that a word file (an ASCII text file with one word per line) is downloaded and avaiable for wordctl to read if the `-f` arg is specified.
+### Word Lists
+By default, `wordtl` uses `Wordle` words from https://www.nytimes.com/games/wordle/index.html. The default word length is 5.
+
+#### Specify Your Own Word List
+Optionally, `wordtl` can read a word file (an ASCII text file with one word per line) to use as its dictionary. `CSW21.txt` is an example that could be placed in the same directory as `wordtl` (for macOS) or `wordtl.exe` (for Wndows) and then consumed with the `-file` arg. It can be downloaded from https://ia903406.us.archive.org/31/items/csw21/CSW21.txt. 
+- Ensure that a word file (an ASCII text file with one word per line) is downloaded and avaiable for wordctl to read if the `-file` arg is specified.
 - CSW21.txt is the same as CSW22.txt from https://www.dropbox.com/s/gagbzhzbe2900ua/CSW22.txt and is described by the Collins Coalition here: https://www.cocoscrabble.org/lexicon.
 
 ## Using `wordtl`
@@ -63,92 +66,137 @@ wordtl.exe
 ```
 
 ### Usage:
+`wordtl` uses subcommands to perform the different functions. Here is the subcommand `help`:
 ```
-Usage of ./wordtl:
-  -a string
-        Answer: Enter the following characters for each letter in your guess - '=' for matching characters, '-' for matching characters that are in the wrong location, 'x' for non-matching characters. Example value of 'x-x=x' would be a match for 4th character; non-match for 1st, 3rd, and 5th character; and 2nd character is in word, but not in the 2nd position.
-  -f string
-        OPTIONAL Word File: Name/Path of ASCII text file containing one word per line. Will use the Wordle list from https://www.nytimes.com/games/wordle/index.html (or https://www.thelivingwordle.com if -b is specified) if this flag is not specified.
-  -g string
-        Guess: This is your guess. Please include an Answer (-a) to filter the next guess. REQUIRED if -a is included.
-  -l int
-        Word Length: Number of letters to match. Wordle is 5 letters. (default 5)
-  -m int
-        Max Words to Print. (default 100)
-  -n	  Auto Play: Guess along side Wordle UI.
-  -p string
-        Pattern to Match: Known letters will be in the position that they appear. Wildecard placeholders '-' 1) must include all letters specified by the -w flag and 2) can be any other letter that is not excluded by the -x flag. Example value of 't----' would lookup words with a 't' in the beginning of a 5 letter word.
-  -s    Print statistics of letter distribution for each letter position.
-  -w string
-        Wildcard Letters: Letters that must appear in any position where there is a wildecard placeholder '-'. Example value of 'r' means that there must be at least 1 'r' in any place where there is a '-' in the -p flag.
-  -x string
-        Excluded Letters: Letters that cannot appear in the word. Example value of 'ies' means that 'i', 'e', or 's' cannot appear anywhere in the word.
-  -(1-9) string
-      Letters that don't belong in this position (each position, 1 through 9, has their own flag): Letters that appear in the word, but not in postion #(1-9) Example value of '-4 ies' means that 'i', 'e', or 's' cannot appear in position #4.
+./wordtl help     
+
+usage: ./wordtl subcommmand [flags]
+
+Available subcommands:
+   auto     Auto Play: Try to guess the word in 6 tries
+   manual   Manual Guess: Get help with a single guess
+   search   Search All Words: dictionary lookup
+   help     Print subcommand help message
+
+For specific subcommand flags, enter './wordtl subcommmand -h'
+
+```
+#### Global Flags
+`wordtl` has the following `global` flags:
+```
+  -file string
+      OPTIONAL Word File: Name/Path of ASCII text file containing one word per
+      line. Will use the Wordle list from 
+      https://www.nytimes.com/games/wordle/index.html if this flag is not
+      specified.
+  -length int
+      Word Length: Number of letters in each word. Wordle is 5 letters.
+      (default 5)
+  -max-print int
+      Max Words to Print. (default 100)
+  -stats
+      Print statistics of letter distribution for each letter position.
+```
+#### Search Flags
+
+```
+  -exclude-all string
+      Excluded Letters: Letters that cannot appear in the word. Example value
+      of 'ies' means that 'i', 'e', or 's' cannot appear anywhere in the word.
+  -exclude-pos string
+      Excluded Letters by Position: Letters that cannot appear in a specific
+      position of the word. JSON - Example value of '{"1":"ab","4":"cd"}' means
+      that 'a' or 'b' cannot appear in position #1 of the word and 'c' or 'd'
+      cannot appear in position #4 of the word. Position must be an integer
+      greater than or equal to 1 and should be less than or equal to the word
+      length.
+  -file string
+    	OPTIONAL Word File: Name/Path of ASCII text file containing one word per
+      line. Will use the Wordle list from 
+      https://www.nytimes.com/games/wordle/index.html if this flag is not
+      specified.
+  -length int
+    	Word Length: Number of letters in each word. Wordle is 5 letters.
+      (default 5)
+  -max-print int
+    	Max Words to Print. (default 100)
+  -pattern string
+    	Pattern to Match: Known letters will be in the position that they appear.
+      Wildecard placeholders '-' 1) must include all letters specified by the
+      -wildcards flag and 2) can be any other letter that is not excluded by
+      the -exclude-all flag. Example value of 't----' would lookup words with a
+      't' in the beginning of a 5 letter word.
+  -stats
+    	Print statistics of letter distribution for each letter position.
+  -wildcards string
+    	Wildcard Letters: Letters that must appear in any position where there is
+      a wildecard placeholder '-'. Example value of 'r' means that there must
+      be at least 1 'r' in any place where there is a '-' in the -pattern flag.
 ```
 
-## Example
+## Search Example
 ### Example Input
 What is a list of 5 letter words that have:
   - "T" as the first letter, and
   - "R" is not in postion 2,
   - "IES" are excluded.
 
-Would be specified by `./wordtl -p t---- -w r -2 r -x ies`
+Would be specified by `./wordtl search -pattern t---- -wildcards r -exclude-pos '{"2":"r"}' -exclude-all ies`
 
 ### Example Output
 The Example input has the following output:
 ```
+Search All Words: dictionary lookup
+
 Word length: 5
-Guess:  ''
-Answer: ''
 Word pattern: 't----'
 Wild Card letters: 'r'
 Excluded letters: 'ies'
 Can't use letters in postion #2: 'r'
 Using built-in Wordle words.
+Ignoring built-in Wordle solution words.
 
-MATCHING WORDS (10):
-tardy tarot thorn throb throw thrum torch tumor turbo tutor 
-
-Try these letters (11):
-o=8 h=5 u=4 b=2 m=2 a=2 n=1 d=1 y=1 c=1 w=1 
-
-Trying elimination letters: 'ohumbaycwnd'
-
-BEST ELIMINATION WORDS (2):
-mouch mucho 
-
-BEST ELIMINATION WORD - BEST CHOICE! - 'mucho'
-
-Try:
-./wordtl -p t---- -w r -2 r -x ies -g mucho   
+SEARCH ALL WORDLE WORDS (40):
+tabor talar tardo tardy targa tarka taroc tarok tarot tarry tarty tarzy tatar
+taxor tayra tharm thorn thoro thorp thraw throb throw thrum thurl tolar torah
+toran torch torot torta tuart tubar tugra tumor turbo turfy turnt turon tutor
+tyran 
 ```
-
-### Interpreting the Output
-
-#### Matching Words
-This is a list of words that match the input criteria. The answer is in here!
-
-#### Try these letters
-This is a list of letters in the `MATCHING WORDS` in the order of their occurrances (greatest to least) that WERE NOT included in the search. 
-
-#### Elimination Words
-`wordtl` will try and come up with a word, or list of words, that will disambiguate the remaining words. In this case, 'mohua' was the best match (having as many elimination letters as possible) chosen from the dictionary as a good elimination word.
-
-#### Next Guess
-If there are remaining possibilites, `wordtl` will suggest a next guess to try. In this example `wordtl` recommends `mucho` as the next input for Wordle.
 
 ### I didn't get any results?
 You specified to many required items and nothing matched your query. Simply remove some of the constraints to open the query to more results.
 
-## TLDR; Just Play Wordle or Living Wordle!
-If you just want to play Wordle, or Living Wordle, and get all of the advantages of `wordtl` right away, just use the `play-along` mode using the `-n` argument.
+## TLDR; Just Play Wordle
+If you just want to play Wordle and get all of the advantages of `wordtl` right away, just use the `Auto Play` mode using the `auto` subcommand.
 
 This will allow you to enter guesses in the Wordle UI, and come up withthe next guess based on the remaining words. Here's an example when the solution was `AVERT`
 
-### Entering Answers From Wordle UI
-Here's an example play from the Wordle UI. We'lluse it as an example on how to enter guess answers. To get to the solution `AVERT`, the following guesses were used:
+### `Wordle` Solution Words
+`Wordle` allows many words when geussing `Today's Wordle` - we will call this set of words `all-words`. `Wordle` has curated a subset of all-words that can be `Today's Wordle` - we will call the set of words `solution-words`. Here's the differences:
+- `all-words` - Most 5 letter scrabble words from something like `CSW21.txt` or `CSW22.txt` as described in https://www.cocoscrabble.org/lexicon. 
+  - This consists of approximately 15,000 words that can be used to `manual` in `Wordle` and eliminate as many words as possible.
+  - Most of these are uncommon words that you never really use - but they are legal words for making a `manual`.
+- `solution-words` - Curated subset of `all-words` that the `Wordle` team has chosen as the actual `Today's Wordle` answer.
+  - This consists of approximately 2,300 words that are the actual answer for `Today's Wordle`.
+  - The `default` mode for `wordtl` is to ONLY use the `solution-words` as the final answer. 
+    - This can be changed by specifying the `-ignore-wordle-solution-words` flag. In this case `all-words` will be considered as the final answer.
+    - In cases where `wordtl` cannot find the final answer in the `solution=-words`, the program will prompt the user to use `all-words` instead.
+
+### Eliminating Previous Results
+For the most part, `Wordle` does not recycle previous results. In order to provide the best solution, `wordtl` stores/retrieves the previously used `Wordles` in a file - [wordle_words_used.txt](./words/wordle_words_used.txt).
+- These words are also published at https://www.rockpapershotgun.com/wordle-past-answers.
+
+By `default`, `wordtl` removes these words from the `solution-words` when determining the final solution.
+- The `-ignore-wordle-used-words` flag can be specified to consider all `solution-words` for the final answer.
+
+After each successful solution of a `Wordle`, the option is given to save the latest result in [wordle_words_used.txt](./words/wordle_words_used.txt) for future use.
+```
+Would you like to add 'avert' to the list of already used words? (default = 'y', exit = '0'): <enter>
+```
+The next time `wordtl auto` is run, then 'avert' will not be considered in the `solution-words`.
+
+### Entering Results From Wordle UI
+Here's an example play from the Wordle UI. We'll use it as an example on how to enter guess results. To get to the solution `AVERT`, the following guesses were used:
 
 ![Wordle.4 using avert](./screenshots/Wordle.4.png)
 
@@ -159,9 +207,9 @@ The following nomenclature are used to mimic the results from the Wordle UI:
 'x' for non-matching characters. <a gray box>
 ```
 
-So, in the case of `ROATE` input we would create an answer string of `-x---`, and for `FLECK` we would answer `xx=xx` to indicate the response from the Wordle UI.
+So, in the case of `ROATE` input we would create an result string of `-x---`, and for `FLECK` we would answer `xx=xx` to indicate the response from the Wordle UI.
 
-In the case of `ROATE` and `-x---`, `wordtl` will give the following feedback to ensure that your `answer` matches the Wordle UI:
+In the case of `ROATE` and `-x---`, `wordtl` will give the following feedback to ensure that your `result` matches the Wordle UI:
 
 ![wordtl.1 using roate](./screenshots/wordtl.1.png)
 
@@ -170,18 +218,18 @@ You want to make sure the color/letter combinations match what is displayed in t
 This is the primary feedback for `wordtl` to help you figure out your next guess.
 
 ### Play Along with Wordle UI
-In this example, we take the recommended guess from `wordtl` by accepting the default `guess` for each turn.
+In this example, we take the recommended guess from `wordtl` by accepting the default `manual` for each turn.
 
-Enter `./wordtl -n`
+For more details on the information printed out by `wordtl`, please see [Interpreting the Output](#interpreting-the-output).
+
+Enter `./wordtl auto`
 
 ```
+Auto Play: Try to guess the word in 6 tries
+
 Word length: 5
-Guess:  ''
-Answer: ''
-Word pattern: '-----'
-Wild Card letters: ''
-Excluded letters: ''
 Using built-in Wordle words.
+Using built-in Wordle solution words.
 
 MATCHING WORDS (2309):
 Only printing first 100
@@ -208,7 +256,7 @@ TRY #1
 ------
 
 Enter your Guess (default = 'roate', exit = '0'): <enter>
-Enter your Answer (exit = '0'): -x---<enter>
+Enter your Result (exit = '0'): -x---<enter>
 ```
 ![Wordle.1 using roate](./screenshots/Wordle.1.png)
 ![wordtl.1 using roate](./screenshots/wordtl.1.png)
@@ -235,13 +283,17 @@ TRY #2
 ------
 
 Enter your Guess (default = 'fleck', exit = '0'): <enter>
-Enter your Answer (exit = '0'): xx=xx<enter>
+Enter your Result (exit = '0'): xx=xx<enter>
 ```
 ![Wordle.2 using fleck](./screenshots/Wordle.2.png)
 ![wordtl.2 using fleck](./screenshots/wordtl.2.png)
 ```
 Is this correct? (default = 'y', exit = '0'): <enter>
 
+Result after 2 guesses:
+```
+![wordtl.2.all using fleck](./screenshots/wordtl.2.all.png)
+```
 MATCHING WORDS (4):
 avert great tread treat 
 
@@ -259,13 +311,17 @@ TRY #3
 ------
 
 Enter your Guess (default = 'gived', exit = '0'): <enter>
-Enter your Answer (exit = '0'): xx--x<enter>
+Enter your Result (exit = '0'): xx--x<enter>
 ```
 ![Wordle.3 using gived](./screenshots/Wordle.3.png)
 ![wordtl.3 using gived](./screenshots/wordtl.3.png)
 ```
 Is this correct? (default = 'y', exit = '0'): <enter> 
 
+Result after 3 guesses:
+```
+![wordtl.3.all using gived](./screenshots/wordtl.3.all.png)
+```
 MATCHING WORDS - EXACT MATCH! - 'avert'
 
 Using MATCHING WORD - 'avert'
@@ -274,7 +330,7 @@ TRY #4
 ------
 
 Enter your Guess (default = 'avert', exit = '0'): <enter>
-Enter your Answer (exit = '0'): =====<enter>
+Enter your Result (exit = '0'): =====<enter>
 ```
 ![Wordle.4 using avert](./screenshots/Wordle.4.png)
 ![wordtl.4 using avert](./screenshots/wordtl.4.png)
@@ -283,43 +339,43 @@ Is this correct? (default = 'y', exit = '0'): <enter>
 
 Congratulations, you have found the solution word in 4 turns!
 ```
-![wordtl.all using roate](./screenshots/wordtl.all.png)
+![wordtl.4.all using avert](./screenshots/wordtl.4.all.png)
 
-## Generate Search Terms From Guess and Answer
-Instead of entering all of the specific parameters manually (-p t---- -w r -2 r -x ies) to do a search, `wordtl` can automatically generate them for you using the Guess (`-g`) and Answer (`-a`) arguments.
+## Generate Search Terms From Guess and Result
+Instead of entering all of the specific parameters manually (-pattern t---- -wildcards r -exclude-pos '{"2":"r"}' -exclude-all ies) to do a search, `wordtl` can automatically generate them for you using the Guess (`-guess`) and Result (`-guess-result`) arguments.
 
-### Guess/Answer
-The example `What is a list of 5 letter words that have: "T" as the first letter, and "R" is not in postion 2, and "IES" are excluded` came from trying to guess `tries` in Wordle. The answer from Wordle was that "T" is a match in position, "R" is in the word but not in position 2, and "IES" do not match.
+### Guess/Result
+The example `What is a list of 5 letter words that have: "T" as the first letter, and "R" is not in postion 2, and "IES" are excluded` came from trying to guess `tries` in Wordle. The result from Wordle was that "T" is a match in position, "R" is in the word but not in position 2, and "IES" do not match.
 
 So, one could input the following to tell `wordtl` the same thing.
 
 ```
-./wordtl -g tries -a '=-xxx'
+./wordtl manual -guess tries -guess-result '=-xxx'
 ```
 is equivilant to manually entering
 ```
-./wordtl -p t---- -w r -2 r -x ies
+./wordtl manual -pattern t---- -wildcards r -exclude-pos '{"2":"r"}' -exclude-all ies
 ```
-### Guess/Answer Example
+### Guess/Result Example
 ```
-NOTE: Actual Trys #(2-x) will be different depending on the Wordle-of-the-day
+NOTE: The `-ignore-wordle-used-words` flag has been specified in this example to produce consistent results.
 ```
 
 #### Try #1
 
 Input:
 ```
-./wordtl
+./wordtl manual -ignore-wordle-used-words
 ```
 Output:
 ```
+Manual Guess: Get help with a single guess
+
 Word length: 5
 Guess:  ''
-Answer: ''
-Word pattern: '-----'
-Wild Card letters: ''
-Excluded letters: ''
+Result: ''
 Using built-in Wordle words.
+Using built-in Wordle solution words.
 
 MATCHING WORDS (2309):
 Only printing first 100
@@ -343,8 +399,23 @@ oater orate roate
 BEST ELIMINATION WORD - BEST CHOICE! - 'roate'
 
 Try:
-./wordtl -p ----- -g roate 
+./wordtl manual -ignore-wordle-used-words -pattern ----- -guess roate -guess-result 
 ```
+#### Interpreting the Output
+
+##### `Matching Words`
+This is a list of words that match the input criteria. `The answer is in here!`
+
+##### `Try these letters`
+This is a list of letters in the `MATCHING WORDS` in the order of their occurrances (greatest to least) that WERE NOT included in the search. 
+
+##### `[Best] Elimination Words`
+`wordtl` will try and come up with a word, or list of words, that will disambiguate the remaining `MATCHING WORDS`. `wordtl` will display the best matches (having as many elimination letters as possible) chosen from the dictionary as good elimination words.
+
+##### `BEST ELIMINATION WORD`
+`wordtl` will select a single word as the `BEST CHOICE` to narrow the remaining `MATCHING WORDS` as mush as possible. This is should be the next `GUESS` to try and solve the `Wordle`.
+
+#### Try #1 Guess
 `wordtl` is telling us to use `roate` as a starter word in Wordle. In this case, we'll just accept the best choice recommended by `wordtl`
 
 Enter `roate` into the Wordle UI, and we get:
@@ -352,36 +423,37 @@ Enter `roate` into the Wordle UI, and we get:
 ![Wordle.1 using roate](./screenshots/Wordle.1.png)
 
 #### Try #2
-Now we take the feedback from the Wordle UI and code it into the answer (`-a`) using the argument value from above:
+Now we take the feedback from the Wordle UI and code it into the result (`-guess-result`) using the argument value from above:
 ```
-'=' for matching characters, '-' for matching characters that are in the wrong location, 'x' for non-matching characters.
+'=' for [green] matching characters, '-' for [yellow] matching characters that are in the wrong location, 'x' for [gray] non-matching characters.
 ```
 and we get:
 ```
--a -x---
+-guess-result -x---
 ```
 and we have the following Input:
 ```
-./wordtl -p ----- -g roate -a -x---
+./wordtl manual -ignore-wordle-used-words -pattern ----- -guess roate -guess-result -x---
 ```
 Output:
 ```
+Manual Guess: Get help with a single guess
+
 Word length: 5
-Guess:  'roate'
-Answer: '-x---'
 Word pattern: '-----'
-Wild Card letters: ''
-Excluded letters: ''
+Guess:  'roate'
+Result: '-x---'
 Using built-in Wordle words.
+Using built-in Wordle solution words.
 
 MATCHING WORDS (17):
 after alert alter avert cater eater extra great hater later taker tamer taper
 terra tread treat water 
 
 Try these letters (12):
-l=3 c=1 m=1 h=1 p=1 f=1 w=1 g=1 d=1 k=1 x=1 v=1 
+l=3 g=1 c=1 v=1 w=1 k=1 m=1 h=1 p=1 d=1 f=1 x=1 
 
-Trying elimination letters: 'lhpfwgcmxvdk'
+Trying elimination letters: 'lgcvwkmhpdfx'
 
 BEST ELIMINATION WORDS (37):
 chalk chawl chelp child clamp clomp clump delph dwalm felch filch flack fleck
@@ -391,7 +463,7 @@ phlox pilch plack pleck plock pluck welch whelk whelm whelp whilk
 BEST ELIMINATION WORD - BEST CHOICE! - 'fleck'
 
 Try:
-./wordtl -p ----- -w rate -1 r -3 a -4 t -5 e -x o -g fleck
+./wordtl manual -ignore-wordle-used-words -pattern ----- -wildcards rate -exclude-pos '{"1":"r","3":"a","4":"t","5":"e"}' -exclude-all o -guess fleck -guess-result
 ```
 Enter `fleck` into the Wordle UI, and we get:
 
@@ -401,16 +473,16 @@ Enter `fleck` into the Wordle UI, and we get:
 Repeat until a solution is arrived at as follows:
 ``` 
 # Try #3
-./wordtl -p -a-er -x ot -g fleck -a xx=xx
+./wordtl manual -ignore-wordle-used-words -pattern ----- -wildcards rate -exclude-pos '{"1":"r","3":"a","4":"t","5":"e"}' -exclude-all o -guess fleck -guess-result xx=xx
 
 Try:
-./wordtl -p --e-- -w rate -1 r -3 a -4 t -5 e -x oflck -g gived 
+./wordtl manual -ignore-wordle-used-words -pattern --e-- -wildcards rate -exclude-pos '{"1":"r","3":"a","4":"t","5":"e"}' -exclude-all oflck -guess gived -guess-result 
 
 # Try #4
-./wordtl -p --e-- -w rate -1 r -3 a -4 t -5 e -x oflck -g gived -a xx--x
+./wordtl manual -ignore-wordle-used-words -pattern --e-- -wildcards rate -exclude-pos '{"1":"r","3":"a","4":"t","5":"e"}' -exclude-all oflck -guess gived -guess-result xx--x
 
 Try:
-./wordtl -p --e-- -w ratev -1 r -3 av -4 te -5 e -x oflckgid -g avert 
+./wordtl manual -ignore-wordle-used-words -pattern --e-- -wildcards ratev -exclude-pos '{"1":"r","3":"av","4":"te","5":"e"}' -exclude-all oflckgid -guess avert -guess-result
 ```
 
 and then we have success!
@@ -422,7 +494,7 @@ and then we have success!
 `wordtl` is developed in Golang. You will need to download Golang from https://golang.org/doc/install. You can install additional developer tools such as an IDE if you would like, but it is not required.
 
 ### TLDR;
-Run `build-all` to build all executables and run unit tests.
+Run [build-all](./build-all) to build all executables and run unit tests.
 
 ### Golang Version
 This code was compiled with `go version go1.22.1 darwin/amd64`. Run `go version` to see what you are using.
