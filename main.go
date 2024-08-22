@@ -18,6 +18,7 @@ import (
 const (
 	ExcludeAllFlag                = "exclude-all"
 	ExcludeByPosFlag              = "exclude-pos"
+	DebugFlag                     = "debug"
 	WordFileFlag                  = "file"
 	GuessFlag                     = "guess"
 	ResultFlag                    = "guess-result"
@@ -61,6 +62,7 @@ var (
 
 	IgnoreWordleSolutionWords = false
 	IgnoreWordleUsedWords     = false
+	Debug                     = false
 )
 
 func parseFlags() {
@@ -100,6 +102,7 @@ func parseFlags() {
 			fs.BoolVar(&IgnoreWordleUsedWords, IgnoreWordleUsedWordsFlag, IgnoreWordleUsedWords, "Do not consider previously used Wordle solution words for results. Can ony be used when -"+WordFileFlag+" is NOT specified.")
 		}
 		fs.BoolVar(&PrintDiagnostics, DiagnosticsFlag, PrintDiagnostics, "Print statistics of letter distribution for each letter position.")
+		fs.BoolVar(&Debug, DebugFlag, Debug, "Print debug information.")
 		fs.IntVar(&MaxWordsToPrint, MaxWordsToPrintFlag, MaxWordsToPrint, "Max Words to Print.")
 	}
 
@@ -467,7 +470,7 @@ func getWordSolutions(solutionWords []string, allWords []string) ([]string, []st
 				printWords(eliminationWords, "ELIMINATION WORDS", "BEST CHOICE", MaxWordsToPrint)
 			}
 			if len(eliminationWords) > 1 {
-				bestEliminationWords = words.GetBestEliminationWords(matchingWords, eliminationWords, WordLength, remainingLetterOrder, remainingLetterCount, remainingLetterDistribution)
+				bestEliminationWords = words.GetBestEliminationWords(matchingWords, eliminationWords, WordLength, remainingLetterOrder, remainingLetterCount, remainingLetterDistribution, Debug)
 				printWords(bestEliminationWords, "BEST ELIMINATION WORDS", "BEST CHOICE", MaxWordsToPrint)
 				if len(bestEliminationWords) > 1 {
 					bestEliminationWord := []string{}
@@ -706,7 +709,7 @@ func WordSearch(solutionWords []string) {
 
 		matchingWords := words.GetMatchingWords(solutionWords, WordPattern, ExcludedLetters, "", false, ExcludedByPosMap)
 		if len(matchingWords) > 1 {
-			matchingWords = words.GetBestEliminationWords([]string{}, matchingWords, WordLength, WildcardLetters, letterCount, letterDistribution)
+			matchingWords = words.GetBestEliminationWords([]string{}, matchingWords, WordLength, WildcardLetters, letterCount, letterDistribution, Debug)
 		}
 		if len(matchingWords) > 0 {
 			wordSearchTitle := "ALL"

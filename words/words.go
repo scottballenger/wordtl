@@ -154,27 +154,35 @@ func GetEliminationWords(
 	return GetMatchingWords(words, strings.Repeat(WildcardChar, wordLength), "", eliminationLetters, false, map[int]string{})
 }
 
-func GetBestEliminationWords(words []string, eliminationWords []string, wordLength int, eliminationLetters string, letterCounts map[string]int, letterDistribution []map[string]int) []string {
+func GetBestEliminationWords(words []string, eliminationWords []string, wordLength int, eliminationLetters string, letterCounts map[string]int, letterDistribution []map[string]int, debug bool) []string {
 	bestEliminationWords := eliminationWords
 	if len(eliminationWords) == 0 {
 		return bestEliminationWords
 	}
 
 	lastLetters := ""
+	remainingWords := []string{}
+	included := make(map[string]bool)
+
 	for index, letter := range eliminationLetters {
-		remainingWords := []string{}
-		// fmt.Print("letter:", string(letter), "\n")
+		if debug {
+			fmt.Print("letter:", string(letter), "\n")
+		}
 
 		// Skip letter if already searched.
 		if strings.Contains(lastLetters, string(letter)) {
-			// fmt.Print("\tskipping:", string(letter), "\n")
+			if debug {
+				fmt.Print("\tskipping:", string(letter), "\n")
+			}
 			continue
 		}
 
 		if index >= wordLength {
 			if len(bestEliminationWords) > 0 {
 				// Found enough letters.
-				// fmt.Println("Searched ", index, "letters. Stopping.")
+				if debug {
+					fmt.Println("Searched ", index, "letters. Stopping.")
+				}
 				break
 			}
 		}
@@ -188,31 +196,43 @@ func GetBestEliminationWords(words []string, eliminationWords []string, wordLeng
 			}
 		}
 		lastLetters = letters
-		// if len(letters) > 1 {
-		// 	fmt.Print("\tall letters:", letters, "\n")
-		// }
+		if debug {
+			if len(letters) > 1 {
+				fmt.Print("\tall letters:", letters, "\n")
+			}
+		}
 
 		// Search all the letters
 		for _, word := range bestEliminationWords {
 			for _, thisLetter := range letters {
 				if strings.Contains(word, string(thisLetter)) {
-					remainingWords = append(remainingWords, word)
+					if !included[word] {
+						remainingWords = append(remainingWords, word)
+						included[word] = true
+						if debug {
+							fmt.Print(word, " ")
+						}
+					}
 					break
 				}
 			}
 		}
-		// fmt.Printf("remainingWords:%v\n", remainingWords)
+		if debug {
+			fmt.Println("\nlen(remainingWords): ", len(remainingWords))
+		}
 		if len(remainingWords) > 0 {
 			bestEliminationWords = remainingWords
-			// fmt.Printf("bestEliminationWords:%v\n", bestEliminationWords)
-		} else {
-			break
+			if debug {
+				fmt.Println("len(bestEliminationWords): ", len(bestEliminationWords))
+			}
 		}
 		if len(bestEliminationWords) == 1 {
 			break
 		}
 	}
-	// fmt.Println("1: len(bestEliminationWords): ", len(bestEliminationWords))
+	if debug {
+		fmt.Println("1: len(bestEliminationWords): ", len(bestEliminationWords))
+	}
 
 	// Get the words with the most letters in order of highest number first
 	if len(bestEliminationWords) > 1 {
@@ -226,7 +246,9 @@ func GetBestEliminationWords(words []string, eliminationWords []string, wordLeng
 			}
 			eliminationLettersCount[word] = letterCount
 		}
-		// fmt.Println("eliminationLettersCount: ", eliminationLettersCount)
+		if debug {
+			fmt.Println("eliminationLettersCount: ", eliminationLettersCount)
+		}
 
 		// Sort words in order of most elimination letters first.
 		keys := make([]string, 0, len(eliminationLettersCount))
@@ -259,7 +281,9 @@ func GetBestEliminationWords(words []string, eliminationWords []string, wordLeng
 			}
 			eliminationLettersScore[word] = letterScore
 		}
-		// fmt.Println("eliminationLettersScore: ", eliminationLettersScore)
+		if debug {
+			fmt.Println("eliminationLettersScore: ", eliminationLettersScore)
+		}
 
 		// Sort words in order of highest elimination score first.
 		keys = make([]string, 0, len(eliminationLettersScore))
@@ -281,8 +305,10 @@ func GetBestEliminationWords(words []string, eliminationWords []string, wordLeng
 			}
 		}
 	}
-	// fmt.Println("2: len(bestEliminationWords): ", len(bestEliminationWords))
-	// fmt.Println("len(words): ", len(words))
+	if debug {
+		fmt.Println("2: len(bestEliminationWords): ", len(bestEliminationWords))
+		fmt.Println("len(words): ", len(words))
+	}
 
 	// Prefer any solution words that are in remaining list.
 	if len(bestEliminationWords) > len(words) {
@@ -294,12 +320,16 @@ func GetBestEliminationWords(words []string, eliminationWords []string, wordLeng
 				}
 			}
 		}
-		// fmt.Println("matchingWords: ", matchingWords)
+		if debug {
+			fmt.Println("matchingWords: ", matchingWords)
+		}
 		if len(matchingWords) > 0 {
 			bestEliminationWords = matchingWords
 		}
 	}
-	// fmt.Println("3: len(bestEliminationWords): ", len(bestEliminationWords))
+	if debug {
+		fmt.Println("3: len(bestEliminationWords): ", len(bestEliminationWords))
+	}
 
 	// Sort the remaining words with respect to individual elimination letter distribution.
 	if len(bestEliminationWords) > 1 {
@@ -309,7 +339,9 @@ func GetBestEliminationWords(words []string, eliminationWords []string, wordLeng
 				eliminationWordScore[word] += letterDistribution[position][string(letter)]
 			}
 		}
-		// fmt.Println("eliminationWordScore: ", eliminationWordScore)
+		if debug {
+			fmt.Println("eliminationWordScore: ", eliminationWordScore)
+		}
 
 		// Sort words in order of highest elimination score first.
 		keys := make([]string, 0, len(eliminationWordScore))
@@ -323,9 +355,10 @@ func GetBestEliminationWords(words []string, eliminationWords []string, wordLeng
 		// Save the words with the highest elimination score first.
 		bestEliminationWords = keys
 	}
-	// fmt.Println("4: len(bestEliminationWords): ", len(bestEliminationWords))
-
-	// fmt.Println("bestEliminationWords: ", bestEliminationWords)
+	if debug {
+		fmt.Println("4: len(bestEliminationWords): ", len(bestEliminationWords))
+		fmt.Println("bestEliminationWords: ", bestEliminationWords)
+	}
 	return bestEliminationWords
 }
 
