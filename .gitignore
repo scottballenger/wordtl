@@ -1,4 +1,5 @@
-CSW21.txt
+CSW2*.txt
 .vscode/settings.json
 .DS_Store
 *.js
+words/sources/*

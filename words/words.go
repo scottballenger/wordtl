@@ -107,7 +107,7 @@ func GetLetterCount(words []string, wordPattern string, wildcardLetters string) 
 		}
 	}
 
-	// Sort letters in order of most occurances first.
+	// Sort letters in order of most occurrences first.
 	keys := make([]string, 0, len(letterCount))
 	for k := range letterCount {
 		keys = append(keys, k)
@@ -270,7 +270,7 @@ func GetBestEliminationWords(words []string, eliminationWords []string, wordLeng
 			}
 		}
 
-		// Score the remaining words with total elimination letter occurances.
+		// Score the remaining words with total elimination letter occurrences.
 		eliminationLettersScore := map[string]int{}
 		for _, word := range bestEliminationWords {
 			letterScore := 0
@@ -296,9 +296,9 @@ func GetBestEliminationWords(words []string, eliminationWords []string, wordLeng
 
 		// Save the words with the highest elimination score.
 		bestEliminationWords = []string{}
-		numEliminationOccurances := eliminationLettersScore[keys[0]]
+		numEliminationOccurrences := eliminationLettersScore[keys[0]]
 		for _, k := range keys {
-			if eliminationLettersScore[k] == numEliminationOccurances {
+			if eliminationLettersScore[k] == numEliminationOccurrences {
 				bestEliminationWords = append(bestEliminationWords, k)
 			} else {
 				break
@@ -415,7 +415,7 @@ func TranslateGuessResults(
 					excludedByPosMap[i+1] += guessLetter
 				}
 			case MissedChar:
-				// Can be another instance of an exsiting letter.
+				// Can be another instance of an existing letter.
 				matchLater := false
 				for j := i + 1; j < len(results); j++ {
 					if string(guess[j]) == guessLetter && (string(results[j]) == MatchedChar || string(results[j]) == WildcardChar) {

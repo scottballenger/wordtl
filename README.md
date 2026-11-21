@@ -17,7 +17,7 @@ Here's a [quickstart to get you going with Wordle using the `auto` subcommand](#
 [Invoke `wordtl` with search parameters using the `search` subcommand](#search-example) to help you find a list of words that meet your criteria. For example:
 - What is a list of 5 letter words that have:
   - "T" as the first letter, and
-  - "R" is not in postion 2,
+  - "R" is not in position 2,
   - "IES" are excluded.
 
 ## Prerequisites
@@ -45,8 +45,8 @@ copy "wordtl.exe" to your machine
 By default, `wordtl` uses `Wordle` words from https://www.nytimes.com/games/wordle/index.html. The default word length is 5.
 
 #### Specify Your Own Word List
-Optionally, `wordtl` can read a word file (an ASCII text file with one word per line) to use as its dictionary. `CSW21.txt` is an example that could be placed in the same directory as `wordtl` (for macOS) or `wordtl.exe` (for Wndows) and then consumed with the `-file` arg. It can be downloaded from https://ia903406.us.archive.org/31/items/csw21/CSW21.txt. 
-- Ensure that a word file (an ASCII text file with one word per line) is downloaded and avaiable for wordctl to read if the `-file` arg is specified.
+Optionally, `wordtl` can read a word file (an ASCII text file with one word per line) to use as its dictionary. `CSW21.txt` is an example that could be placed in the same directory as `wordtl` (for macOS) or `wordtl.exe` (for Windows) and then consumed with the `-file` arg. It can be downloaded from https://ia903406.us.archive.org/31/items/csw21/CSW21.txt. 
+- Ensure that a word file (an ASCII text file with one word per line) is downloaded and available for wordtl to read if the `-file` arg is specified.
 - CSW21.txt is the same as CSW22.txt from https://www.dropbox.com/s/gagbzhzbe2900ua/CSW22.txt and is described by the Collins Coalition here: https://www.cocoscrabble.org/lexicon.
 
 ## Using `wordtl`
@@ -70,7 +70,7 @@ wordtl.exe
 ```
 ./wordtl help     
 
-usage: ./wordtl subcommmand [flags]
+usage: ./wordtl subcommand [flags]
 
 Available subcommands:
    auto     Auto Play: Try to guess the word in 6 tries
@@ -78,7 +78,7 @@ Available subcommands:
    search   Search All Words: dictionary lookup
    help     Print subcommand help message
 
-For specific subcommand flags, enter './wordtl subcommmand -h'
+For specific subcommand flags, enter './wordtl subcommand -h'
 
 Also see https://github.com/scottballenger/wordtl/blob/main/README.md for a
 detailed description.
@@ -125,7 +125,7 @@ detailed description.
     	Max Words to Print. (default 100)
   -pattern string
     	Pattern to Match: Known letters will be in the position that they appear.
-      Wildecard placeholders '-' 1) must include all letters specified by the
+      Wildcard placeholders '-' 1) must include all letters specified by the
       -wildcards flag and 2) can be any other letter that is not excluded by
       the -exclude-all flag. Example value of 't----' would lookup words with a
       't' in the beginning of a 5 letter word.
@@ -133,7 +133,7 @@ detailed description.
     	Print statistics of letter distribution for each letter position.
   -wildcards string
     	Wildcard Letters: Letters that must appear in any position where there is
-      a wildecard placeholder '-'. Example value of 'r' means that there must
+      a wildcard placeholder '-'. Example value of 'r' means that there must
       be at least 1 'r' in any place where there is a '-' in the -pattern flag.
 ```
 
@@ -141,7 +141,7 @@ detailed description.
 ### Example Input
 What is a list of 5 letter words that have:
   - "T" as the first letter, and
-  - "R" is not in postion 2,
+  - "R" is not in position 2,
   - "IES" are excluded.
 
 Would be specified by `./wordtl search -pattern t---- -wildcards r -exclude-pos '{"2":"r"}' -exclude-all ies`
@@ -155,7 +155,7 @@ Word length: 5
 Word pattern: 't----'
 Wild Card letters: 'r'
 Excluded letters: 'ies'
-Can't use letters in postion #2: 'r'
+Can't use letters in position #2: 'r'
 Using built-in Wordle words.
 Ignoring built-in Wordle solution words.
 
@@ -172,31 +172,18 @@ You specified to many required items and nothing matched your query. Simply remo
 ## TLDR; Just Play Wordle
 If you just want to play Wordle and get all of the advantages of `wordtl` right away, just use the `Auto Play` mode using the `auto` subcommand.
 
-This will allow you to enter guesses in the Wordle UI, and come up withthe next guess based on the remaining words. Here's an example when the solution was `AVERT`
+This will allow you to enter guesses in the Wordle UI, and come up with the next guess based on the remaining words. Here's an example when the solution was `AVERT`
 
 ### `Wordle` Solution Words
-`Wordle` allows many words when geussing (entering a value in the UI) `Today's Wordle` - we will call this set of words `all-words`. `Wordle` has curated a subset of `all-words` that can be `Today's Wordle` - we will call this set of words `solution-words`. Here's the differences:
+`Wordle` allows many words when guessing (entering a value in the UI) `Today's Wordle` - we will call this set of words `all-words`. `Wordle` has curated a subset of `all-words` that can be `Today's Wordle` - we will call this set of words `solution-words`. Here's the differences:
 - `all-words` - Most 5 letter scrabble words from something like `CSW21.txt` or `CSW22.txt` as described in https://www.cocoscrabble.org/lexicon. 
   - This consists of approximately 15,000 words that can be used to `guess` in `Wordle` and eliminate as many words as possible.
   - Most of these are uncommon words that you never really use - but they are legal words for making a `guess`.
 - `solution-words` - Curated subset of `all-words` that the `Wordle` team has chosen as the actual `Today's Wordle` answer.
-  - This consists of approximately 2,300 words that are the actual answer for `Today's Wordle`.
+  - This consists of approximately 3,200 words that are the actual answer for `Today's Wordle`.
   - The `default` mode for `wordtl` is to ONLY use the `solution-words` as the final answer. 
     - This can be changed by specifying the `-ignore-wordle-solution-words` flag. In this case `all-words` will be considered as the final answer.
     - In cases where `wordtl` cannot find the final answer in the `solution=-words`, the program will prompt the user to use `all-words` instead.
-
-### Eliminating Previous Results
-For the most part, `Wordle` does not recycle previous results. In order to provide the best solution, `wordtl` stores/retrieves the previously used `Wordles` in a file - [wordle_words_used.txt](./words/wordle_words_used.txt).
-- These words are also published at https://www.rockpapershotgun.com/wordle-past-answers.
-
-By `default`, `wordtl` removes these words from the `solution-words` when determining the final solution.
-- The `-ignore-wordle-used-words` flag can be specified to consider all `solution-words` for the final answer.
-
-After each successful solution of a `Wordle`, the option is given to save the latest result in [wordle_words_used.txt](./words/wordle_words_used.txt) for future use.
-```
-Would you like to add 'avert' to the list of already used words? (default = 'y', exit = '0'): <enter>
-```
-The next time `wordtl auto` is run, then 'avert' will not be considered in the `solution-words`.
 
 ### Entering Results From Wordle UI
 Here's an example play from the Wordle UI. We'll use it as an example on how to enter guess results. To get to the solution `AVERT`, the following guesses were used:
@@ -348,14 +335,14 @@ Congratulations, you have found the solution word in 4 turns!
 Instead of entering all of the specific parameters manually (-pattern t---- -wildcards r -exclude-pos '{"2":"r"}' -exclude-all ies) to do a search, `wordtl` can automatically generate them for you using the Guess (`-guess`) and Result (`-guess-result`) arguments.
 
 ### Guess/Result
-The example `What is a list of 5 letter words that have: "T" as the first letter, and "R" is not in postion 2, and "IES" are excluded` came from trying to guess `tries` in Wordle. The result from Wordle was that "T" is a match in position, "R" is in the word but not in position 2, and "IES" do not match.
+The example `What is a list of 5 letter words that have: "T" as the first letter, and "R" is not in position 2, and "IES" are excluded` came from trying to guess `tries` in Wordle. The result from Wordle was that "T" is a match in position, "R" is in the word but not in position 2, and "IES" do not match.
 
 So, one could input the following to tell `wordtl` the same thing.
 
 ```
 ./wordtl manual -guess tries -guess-result '=-xxx'
 ```
-is equivilant to manually entering
+is equivalent to manually entering
 ```
 ./wordtl manual -pattern t---- -wildcards r -exclude-pos '{"2":"r"}' -exclude-all ies
 ```
@@ -411,7 +398,7 @@ Try:
 This is a list of words that match the input criteria. `The answer is in here!`
 
 ##### `Try these letters`
-This is a list of letters in the `MATCHING WORDS` in the order of their occurrances (greatest to least) that WERE NOT included in the search. 
+This is a list of letters in the `MATCHING WORDS` in the order of their occurrences (greatest to least) that WERE NOT included in the search. 
 
 ##### `[Best] Elimination Words`
 `wordtl` will try and come up with a word, or list of words, that will disambiguate the remaining `MATCHING WORDS`. `wordtl` will display the best matches (having as many elimination letters as possible) chosen from the dictionary as good elimination words.

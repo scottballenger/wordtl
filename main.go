@@ -30,7 +30,6 @@ const (
 	WordPatternFlag               = "pattern"
 	DiagnosticsFlag               = "stats"
 	UseWordleSolutionWordsFlag    = "use-wordle-solution-words"
-	UseWordleUsedWordsFlag        = "use-wordle-used-words"
 	WildcardFlag                  = "wildcards"
 
 	MaxTries = 6
@@ -46,7 +45,7 @@ var (
 	MinWordLength    = 3
 	WordPattern      = "" // Pattern to match, length must be WordLength number of letters.
 	WordFile         = "" // Name/Path of text file containing 1 word per line.
-	WildcardLetters  = "" // Letters that can appear in any position where there is a wildecard placeholder.
+	WildcardLetters  = "" // Letters that can appear in any position where there is a wildcard placeholder.
 	ExcludedByPosStr = "" // Letters that cannot appear in the position where they are specified.
 	ExcludedByPosMap map[int]string
 	ExcludedLetters  = "" // Letters that cannot appear anywhere in the word.
@@ -61,7 +60,6 @@ var (
 	UsedWordsFile    = "words/wordle_words_used.txt"
 
 	IgnoreWordleSolutionWords = false
-	IgnoreWordleUsedWords     = false
 	Debug                     = false
 )
 
@@ -87,7 +85,6 @@ func parseFlags() {
 	// Search Flags
 	addSearchFlags(searchCmd)
 	useWordleSolutionWords := false
-	useWordleUsedWords := false
 
 	// Global Flags
 	for _, fs := range subcommands {
@@ -96,10 +93,8 @@ func parseFlags() {
 		fs.StringVar(&WordFile, WordFileFlag, WordFile, wordFileHelp)
 		if fs == searchCmd {
 			fs.BoolVar(&useWordleSolutionWords, UseWordleSolutionWordsFlag, useWordleSolutionWords, "Consider Wordle solution words for results. Can ony be used when -"+WordFileFlag+" is NOT specified.")
-			fs.BoolVar(&useWordleUsedWords, UseWordleUsedWordsFlag, useWordleUsedWords, "Consider previously used Wordle solution words for results. Can ony be used when -"+WordFileFlag+" is NOT specified.")
 		} else {
 			fs.BoolVar(&IgnoreWordleSolutionWords, IgnoreWordleSolutionWordsFlag, IgnoreWordleSolutionWords, "Do not consider Wordle solution words for results. Can ony be used when -"+WordFileFlag+" is NOT specified.")
-			fs.BoolVar(&IgnoreWordleUsedWords, IgnoreWordleUsedWordsFlag, IgnoreWordleUsedWords, "Do not consider previously used Wordle solution words for results. Can ony be used when -"+WordFileFlag+" is NOT specified.")
 		}
 		fs.BoolVar(&PrintDiagnostics, DiagnosticsFlag, PrintDiagnostics, "Print statistics of letter distribution for each letter position.")
 		fs.BoolVar(&Debug, DebugFlag, Debug, "Print debug information.")
@@ -130,14 +125,13 @@ func parseFlags() {
 
 	if Mode == ModeWordSearch {
 		IgnoreWordleSolutionWords = !useWordleSolutionWords
-		IgnoreWordleUsedWords = !useWordleUsedWords
 	}
 }
 
 func addSearchFlags(fs *flag.FlagSet) {
-	wordPatternHelp := "Pattern to Match: Known letters will be in the position that they appear. Wildecard placeholders '" + words.WildcardChar + "' 1) must include all letters specified by the -" + WildcardFlag + " flag and 2) can be any other letter that is not excluded by the -" + ExcludeAllFlag + " flag. Example value of 't" + strings.Repeat(words.WildcardChar, 4) + "' would lookup words with a 't' in the beginning of a 5 letter word."
+	wordPatternHelp := "Pattern to Match: Known letters will be in the position that they appear. Wildcard placeholders '" + words.WildcardChar + "' 1) must include all letters specified by the -" + WildcardFlag + " flag and 2) can be any other letter that is not excluded by the -" + ExcludeAllFlag + " flag. Example value of 't" + strings.Repeat(words.WildcardChar, 4) + "' would lookup words with a 't' in the beginning of a 5 letter word."
 	fs.StringVar(&WordPattern, WordPatternFlag, WordPattern, wordPatternHelp)
-	wildcardHelp := "Wildcard Letters: Letters that must appear in any position where there is a wildecard placeholder '" + words.WildcardChar + "'. Example value of 'r' means that there must be at least 1 'r' in any place where there is a '" + words.WildcardChar + "' in the -" + WordPatternFlag + " flag."
+	wildcardHelp := "Wildcard Letters: Letters that must appear in any position where there is a wildcard placeholder '" + words.WildcardChar + "'. Example value of 'r' means that there must be at least 1 'r' in any place where there is a '" + words.WildcardChar + "' in the -" + WordPatternFlag + " flag."
 	fs.StringVar(&WildcardLetters, WildcardFlag, WildcardLetters, wildcardHelp)
 	fs.StringVar(&ExcludedLetters, ExcludeAllFlag, ExcludedLetters, "Excluded Letters: Letters that cannot appear in the word. Example value of 'ies' means that 'i', 'e', or 's' cannot appear anywhere in the word.")
 	fs.StringVar(&ExcludedByPosStr, ExcludeByPosFlag, ExcludedByPosStr, "Excluded Letters by Position: Letters that cannot appear in a specific position of the word. JSON - Example value of '{\"1\":\"ab\",\"4\":\"cd\"}' means that 'a' or 'b' cannot appear in position #1 of the word and 'c' or 'd' cannot appear in position #4 of the word. Position must be an integer greater than or equal to 1 and should be less than or equal to the word length.")
@@ -149,7 +143,7 @@ func printUsage(subcommandFlagset map[string]*flag.FlagSet, errString string) {
 		fmt.Println("[ERROR] " + errString)
 		fmt.Println()
 	}
-	fmt.Println("usage: " + os.Args[0] + " subcommmand [flags]")
+	fmt.Println("usage: " + os.Args[0] + " subcommand [flags]")
 	fmt.Println()
 	fmt.Println("Available subcommands:")
 	subcommandSpacing := len(ModeHelp)
@@ -168,7 +162,7 @@ func printUsage(subcommandFlagset map[string]*flag.FlagSet, errString string) {
 		fmt.Println("   " + subcommand + strings.Repeat(" ", subcommandSpacing-len(subcommand)) + getModeDescription(subcommand))
 	}
 	fmt.Println()
-	fmt.Println("For specific subcommand flags, enter '" + os.Args[0] + " subcommmand -h'")
+	fmt.Println("For specific subcommand flags, enter '" + os.Args[0] + " subcommand -h'")
 	fmt.Println()
 	fmt.Println("Also see https://github.com/scottballenger/wordtl/blob/main/README.md for a detailed description.")
 	fmt.Println()
@@ -189,7 +183,7 @@ func getModeDescription(mode string) string {
 	}
 }
 
-func initialize() ([]string, []string, map[string]bool, string, string) {
+func initialize() ([]string, []string, string, string) {
 
 	parseFlags()
 
@@ -227,7 +221,7 @@ func initialize() ([]string, []string, map[string]bool, string, string) {
 				if pos > WordLength {
 					cantUseError = " [Invalid due to word length of " + fmt.Sprintf("%d", WordLength) + "]"
 				}
-				fmt.Printf("Can't use letters in postion #%d: '%s'%s\n", pos, ExcludedByPosMap[pos], cantUseError)
+				fmt.Printf("Can't use letters in position #%d: '%s'%s\n", pos, ExcludedByPosMap[pos], cantUseError)
 			} else {
 				fmt.Println("Position " + fmt.Sprintf("%d", pos) + " out of range for -" + ExcludeByPosFlag + " '" + ExcludedByPosStr + "', see usage with '" + os.Args[0] + " " + Mode + " -h'")
 				os.Exit(1)
@@ -247,17 +241,17 @@ func initialize() ([]string, []string, map[string]bool, string, string) {
 	}
 
 	if len(WordPattern) != WordLength {
-		fmt.Printf("\nERROR: WordPattern must be %d letters long. '%s' is %d lettters.\n\n", WordLength, WordPattern, len(WordPattern))
+		fmt.Printf("\nERROR: WordPattern must be %d letters long. '%s' is %d letters.\n\n", WordLength, WordPattern, len(WordPattern))
 		os.Exit(1)
 	}
 
 	if Guess != "" && len(Guess) != WordLength {
-		fmt.Printf("\nERROR: Guess must be %d letters long. '%s' is %d lettters.\n\n", WordLength, Guess, len(Guess))
+		fmt.Printf("\nERROR: Guess must be %d letters long. '%s' is %d letters.\n\n", WordLength, Guess, len(Guess))
 		os.Exit(1)
 	}
 
 	if Guess != "" && len(Guess) == WordLength && len(Result) != WordLength {
-		fmt.Printf("\nERROR: Result must be %d letters long. '%s' is %d lettters.\n\n", WordLength, Result, len(Result))
+		fmt.Printf("\nERROR: Result must be %d letters long. '%s' is %d letters.\n\n", WordLength, Result, len(Result))
 		os.Exit(1)
 	}
 
@@ -271,7 +265,7 @@ func initialize() ([]string, []string, map[string]bool, string, string) {
 	if DoWordle {
 		fmt.Printf("Using built-in %s words.\n", WordleTitle)
 
-		if (Mode == ModeAutoPlay || Mode == ModeManualGuess) && !IgnoreWordleUsedWords {
+		if Mode == ModeAutoPlay || Mode == ModeManualGuess {
 			startDate := words.WordleStartDate
 			timeFormat := "2006-01-02"
 			t, _ := time.Parse(timeFormat, startDate)
@@ -282,39 +276,12 @@ func initialize() ([]string, []string, map[string]bool, string, string) {
 			fmt.Printf("Todays %s Day: %d\n", WordleTitle, TodaysDay)
 		}
 
-		usedWords := make(map[string]bool)
 		solutionWords := []string{}
 		if IgnoreWordleSolutionWords {
 			fmt.Printf("Ignoring built-in %s solution words.\n", WordleTitle)
 		} else {
 			fmt.Printf("Using built-in %s solution words.\n", WordleTitle)
-			if IgnoreWordleUsedWords {
-				solutionWords = words.WordleSolutionWords
-			} else {
-				// Wordle already used words are contained in a separate file.
-				fmt.Printf("Removing previously used %s solution words.\n", WordleTitle)
-				f, err := os.Open(UsedWordsFile)
-				if err != nil {
-					log.Println(err)
-				} else {
-					defer f.Close()
-					scanner := bufio.NewScanner(f)
-					for scanner.Scan() {
-						word := strings.ToLower(scanner.Text())
-						if len(word) == WordLength {
-							usedWords[word] = true
-						}
-					}
-				}
-
-				// Remove the used words from the solution words.
-				for _, word := range words.WordleSolutionWords {
-					word = strings.ToLower(word)
-					if !usedWords[word] {
-						solutionWords = append(solutionWords, word)
-					}
-				}
-			}
+			solutionWords = words.WordleSolutionWords
 		}
 
 		allWords := append(words.WordleSolutionWords, words.WordleSearchWords...)
@@ -336,7 +303,7 @@ func initialize() ([]string, []string, map[string]bool, string, string) {
 			solutionWords = allWords
 		}
 
-		return solutionWords, allWords, usedWords, Guess, Result
+		return solutionWords, allWords, Guess, Result
 
 	} else if WordFile != "" {
 		fmt.Printf("Reading Word file: %s\n", WordFile)
@@ -358,13 +325,13 @@ func initialize() ([]string, []string, map[string]bool, string, string) {
 			fmt.Printf("\nERROR: '%s' does NOT include any %d letter words.\n\n", WordFile, WordLength)
 			os.Exit(1)
 		}
-		return allWords, allWords, nil, Guess, Result
+		return allWords, allWords, Guess, Result
 	} else {
 		fmt.Printf("\nERROR: You must specify a -f <Word File> for %d letter words.\n\n", WordLength)
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
-	return nil, nil, nil, "", ""
+	return nil, nil, "", ""
 }
 
 func printWords(words []string, description string, exclamation string, maxToPrint int) {
@@ -409,7 +376,7 @@ func printLettersToTry(letters map[string]int) {
 	}
 
 	fmt.Printf("\nTry these letters (%d):\n", len(letters))
-	// Sort letters in order of most occurances first.
+	// Sort letters in order of most occurrences first.
 	keys := make([]string, 0, len(letters))
 	for k := range letters {
 		keys = append(keys, k)
@@ -532,11 +499,7 @@ func printNextGuess(
 	} else {
 		if Mode == ModeManualGuess {
 			if !IgnoreWordleSolutionWords {
-				if !IgnoreWordleUsedWords {
-					guessArgs = "-" + IgnoreWordleUsedWordsFlag
-				} else {
-					guessArgs = "-" + IgnoreWordleSolutionWordsFlag
-				}
+				guessArgs = "-" + IgnoreWordleSolutionWordsFlag
 			}
 		}
 	}
@@ -556,12 +519,7 @@ func printNextGuess(
 		ignoreWordleSolutionWordsFlag = "-" + IgnoreWordleSolutionWordsFlag + " "
 	}
 
-	ignoreWordleUsedWordsFlag := ""
-	if IgnoreWordleUsedWords {
-		ignoreWordleUsedWordsFlag = "-" + IgnoreWordleUsedWordsFlag + " "
-	}
-
-	fmt.Printf("\nTry:\n%s %s %s%s%s%s%s%s%s%s%s\n", os.Args[0], Mode, wordFileArg, wordLengthArg, ignoreWordleSolutionWordsFlag, ignoreWordleUsedWordsFlag, wordPatternArgs, wildcardLettersArgs, excludedByPosStr, excludedLettersArgs, guessArgs)
+	fmt.Printf("\nTry:\n%s %s %s%s%s%s%s%s%s%s\n", os.Args[0], Mode, wordFileArg, wordLengthArg, ignoreWordleSolutionWordsFlag, wordPatternArgs, wildcardLettersArgs, excludedByPosStr, excludedLettersArgs, guessArgs)
 }
 
 func getUserInputRange(defaultVal string, valName string, startChar string, endChar string, validCharsMsg string, validCharsHelp string, validLength int) string {
@@ -682,8 +640,8 @@ func printWordleSolution(guesses [MaxTries]string, results [MaxTries]string, num
 	}
 }
 
-func isResultCorrect(result string, validlength int) bool {
-	if len(result) != validlength {
+func isResultCorrect(result string, validLength int) bool {
+	if len(result) != validLength {
 		return false
 	}
 	correct := true
@@ -717,9 +675,6 @@ func WordSearch(solutionWords []string) {
 				wordSearchTitle += " " + strings.ToUpper(WordleTitle)
 				if !IgnoreWordleSolutionWords {
 					wordSearchTitle += " SOLUTION"
-					if !IgnoreWordleUsedWords {
-						wordSearchTitle += " (minus USED)"
-					}
 				}
 			}
 			printWords(matchingWords, "SEARCH "+wordSearchTitle+" WORDS", "EXACT MATCH", MaxWordsToPrint)
@@ -751,7 +706,7 @@ func ManualGuess(guess string, result string, solutionWords []string, allWords [
 	}
 }
 
-func AutoPlay(guess string, result string, solutionWords []string, allWords []string, usedWords map[string]bool) {
+func AutoPlay(guess string, result string, solutionWords []string, allWords []string) {
 	const (
 		yes = "y"
 		no  = "n"
@@ -769,15 +724,6 @@ func AutoPlay(guess string, result string, solutionWords []string, allWords []st
 				IgnoreWordleSolutionWords = true
 				solutionWords = allWords
 				matchingWords, eliminationWords, bestEliminationWords = getWordSolutions(solutionWords, allWords)
-				var previouslyUsedWords []string
-				for _, word := range matchingWords {
-					if usedWords[word] {
-						previouslyUsedWords = append(previouslyUsedWords, word)
-					}
-				}
-				if len(previouslyUsedWords) > 0 {
-					printWords(previouslyUsedWords, "FYI - The following words were previously used as Wordle Solutions", "", MaxWordsToPrint)
-				}
 			}
 		}
 		guess = getBestGuess(matchingWords, eliminationWords, bestEliminationWords)
@@ -811,31 +757,13 @@ func AutoPlay(guess string, result string, solutionWords []string, allWords []st
 		foundSolution := isResultCorrect(result, WordLength)
 		printWordleSolution(guesses, results, try, foundSolution)
 		if foundSolution {
-			if DoWordle {
-				if !usedWords[guess] && !IgnoreWordleUsedWords {
-					addUsedWord := getUserInput(yes, "Would you like to add '"+guess+"' to the list of already used words?", yes+no, yes+" or "+no, "", 1)
-					if addUsedWord == yes {
-						f, err := os.OpenFile(UsedWordsFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-						if err != nil {
-							log.Println(err)
-						} else {
-							defer f.Close()
-							newUsedWord := "\n" + guess
-							_, err = f.WriteString(newUsedWord)
-							if err != nil {
-								log.Println(err)
-							}
-						}
-					}
-				}
-			}
 			break
 		}
 	}
 }
 
 func main() {
-	solutionWords, allWords, usedWords, guess, result := initialize()
+	solutionWords, allWords, guess, result := initialize()
 
 	switch Mode {
 	case ModeWordSearch:
@@ -843,6 +771,6 @@ func main() {
 	case ModeManualGuess:
 		ManualGuess(guess, result, solutionWords, allWords)
 	default:
-		AutoPlay(guess, result, solutionWords, allWords, usedWords)
+		AutoPlay(guess, result, solutionWords, allWords)
 	}
 }
